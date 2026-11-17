@@ -1,0 +1,2 @@
+# Dependencies are pinned to exact versions and upgraded by hand (.agents/decisions/002-exact-pins.md).
+saveExact: true
