@@ -1,0 +1,112 @@
+{
+	"version": 1,
+	"keys": {
+		"user": {
+			"publicKey": "9f864c97d69c03bea7546624e4703e3175a43b39a492fb25e40db676151fad62",
+			"privateKey": "072272f7dd20385afd0007b164c0b5ae8a7cbbcc1d9b34e6785983cbbcf1d8e6"
+		},
+		"member": {
+			"publicKey": "67a69108cd3a3dbe1bc0adac59e23a0e6ff7a5c2f0b2d8f5e9692f1590eefe54",
+			"privateKey": "e5d79f7c61b177c52e388807047f6c6a4a2db4314d8eb840c3f41f8d0844596a"
+		},
+		"link": {
+			"publicKey": "21a326273ce743d8a7320350e85009d5f15b516fdfc4948f731e9f230cf63103",
+			"privateKey": "5b4bbe88404b7c8ed79c394ebbd9cffd7de17e56839ac010d89c94650dcdf2f0"
+		}
+	},
+	"frame": [
+		{
+			"fields": [
+				"1",
+				"ezpriv/row",
+				"expense",
+				"42"
+			],
+			"frame": "1:1,10:ezpriv/row,7:expense,2:42,"
+		},
+		{
+			"fields": [
+				"1",
+				"ezpriv/user",
+				"señal"
+			],
+			"frame": "1:1,11:ezpriv/user,6:señal,"
+		}
+	],
+	"passwordKeys": [
+		{
+			"password": "correct horse battery staple",
+			"salt": "000102030405060708090a0b0c0d0e0f",
+			"params": {
+				"opsLimit": 2,
+				"memLimit": 19922944
+			},
+			"keyP": "d0ddb054d1f1e1a46416ee753b13714e644d34d62c01b0ce6f2549b5fda5a6cc",
+			"authKey": "142f168976d0d225efc9d14f8ceffd45e54940c94183d51871bce636f53ce5ba"
+		},
+		{
+			"password": "contraseña segura",
+			"salt": "000102030405060708090a0b0c0d0e0f",
+			"params": {
+				"opsLimit": 2,
+				"memLimit": 19922944
+			},
+			"keyP": "795c2a71fffee54111bfd4a6f2f134b3acf50bf0bf86828c687266fab828605c",
+			"authKey": "746dbfa315c8d402d661e6c0ab16fa86ae61ad0d8576b10422384455f63678fe"
+		}
+	],
+	"keyFromWords": [
+		{
+			"words": "legal winner thank year wave sausage worth useful legal winner thank yellow",
+			"key": "20e0f4f5d461e7af6bca51a5e0ee9af397cc52e84649465921ad16649bb1f939"
+		}
+	],
+	"keyFromPrf": [
+		{
+			"prf": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+			"key": "2a8569de47203c280984c8b7aef7d2bd47cb51be218b912fcfb504520ded904f"
+		}
+	],
+	"wrapKey": [
+		{
+			"key": "072272f7dd20385afd0007b164c0b5ae8a7cbbcc1d9b34e6785983cbbcf1d8e6",
+			"wrappingKey": "d0ddb054d1f1e1a46416ee753b13714e644d34d62c01b0ce6f2549b5fda5a6cc",
+			"userId": "user-1",
+			"kind": "password",
+			"wrapped": "01c1fb6b058adfc3d4a8af240da21aa61890a79f15af6e9301704900b4ea05499c7f2554a0e3e650f1e6bb52e91dc8622447eb00df1c658be44e9e5c9836ee890ddc473664f0d10375"
+		}
+	],
+	"encryptRow": [
+		{
+			"value": "7b226e616d65223a2250697a7a61222c22616d6f756e74436c70223a31323939307d",
+			"groupKey": "a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+			"table": "expense",
+			"rowId": "3f6c2a10-8b7d-4c9e-a1f2-0e3d4c5b6a79",
+			"encrypted": "01a5174c1a3b9b731bd4ebe33d9e204337a82abb975973eb5accb0faa07b759190974ef71701d51a4ecc2baf80fdc360cfbed7c8183abe8bd2d195159bc84196b96938355843c89800d4cc"
+		}
+	],
+	"sealGroupKey": [
+		{
+			"groupKey": "a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+			"groupId": "9b2f4c1e-0d3a-4e5f-8a6b-7c8d9e0f1a2b",
+			"recipient": "member",
+			"sealed": "017b4a7d0cdfcc7271d9775062a715d924b126c0d726a9d7dbe071375cbe062962f2daf33a59310eb0f6893a654e9b8c41ac63c11fb16bae89086c0bbaaa6e34644a9191a2d65400ebb5925b12bf39f0d4fcc2da64d1aef33d53cc893d281a077b136151d656d711033fee77118b4c9480e359746dc3570e38acb6d36d206e3f1a87c3e2ce4e179d1226283c63eaeb0974"
+		}
+	],
+	"sealForUser": [
+		{
+			"value": "7b227469746c65223a2250697a7a61222c22626f6479223a222431322e393930227d",
+			"context": "notification",
+			"recipient": "user",
+			"sealed": "01e36b50b8f694114f48199fe2866afecc657d4c17011585bebf1144df9cce2c2dd309cb17df95e645db1e64a33e798e55d4fd8edb257139d53842246bbf421f72aa84b6bba1fd9a3f1f4c436d7faa5bbd1313b63f06b8085c91c6714916e3b33eb0514d7cf21204c6b05fdef2cc6fcf060e62687916"
+		}
+	],
+	"sealForLink": [
+		{
+			"channelId": "c7e1d2f3-4a5b-4c6d-8e9f-0a1b2c3d4e5f",
+			"userId": "user-1",
+			"recipient": "link",
+			"sealed": "01dfd47a3f1d58a59d6d6ad37fd28ee0ce06ac1ce2890ac3c5f614c51e09650f57e4bd28b51b45ad433d60b81a288642ad7ce56e26506b47e6e7a5362040d4d153902dea68297cda568707ece389d21fb566fd762dc8cd8a1cf222ff86f19a90223c03e4314c78b48e774051cee7cd1b6fb923c1790af492d74eb87c417bdfe95fe0ba0b6d3a5022348deedb67304aee0c810876cc5767bb64ae71cc92f4b2a6444107f936103e5ed61bd5d3aff987a53b5d0c9283"
+		}
+	]
+}

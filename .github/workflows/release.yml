@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@11
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm build
+      - name: Publish if this version isn't on npm yet
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "@ezpriv/crypto@$version" version >/dev/null 2>&1; then
+            echo "@ezpriv/crypto@$version is already published"
+          else
+            npm publish --access public
+          fi
