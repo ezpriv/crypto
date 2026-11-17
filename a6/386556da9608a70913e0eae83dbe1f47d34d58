@@ -1,0 +1,21 @@
+.github/workflows/release.yml
+  s_d1decf1a8ec844::t_0f178cdef5cf93 11-12,15-17,23-44,47-48,52
+.github/workflows/ci.yml
+  s_d1decf1a8ec844::t_dd34c6ad1d3871 8-10,15-17,29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a6386556da9608a70913e0eae83dbe1f47d34d58",
+  "prompts": {},
+  "sessions": {
+    "s_d1decf1a8ec844": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "20890c5f-48d7-47bc-b8fd-b686949675ff",
+        "model": "claude-fable-5-2"
+      },
+      "human_author": "mvargas33 <mvargas.uchile@gmail.com>"
+    }
+  }
+}
