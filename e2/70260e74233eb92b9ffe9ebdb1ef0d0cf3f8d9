@@ -1,0 +1,23 @@
+SPEC.md
+  s_30e41d256a389d::t_532c40c3e57094 1-75
+README.md
+  s_30e41d256a389d::t_2b273dd6cc078a 1-81
+SECURITY.md
+  s_30e41d256a389d::t_77bcfbcdc1d621 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e270260e74233eb92b9ffe9ebdb1ef0d0cf3f8d9",
+  "prompts": {},
+  "sessions": {
+    "s_30e41d256a389d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fca15bbe-c107-40f3-8f51-1f9175f75719",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "mvargas33 <mvargas.uchile@gmail.com>"
+    }
+  }
+}
