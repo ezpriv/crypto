@@ -49,5 +49,5 @@ jobs:
           if npm view "@ezpriv/crypto@$version" version >/dev/null 2>&1; then
             echo "@ezpriv/crypto@$version is already published"
           else
-            npm publish "$tarball" --access public
+            npm publish "$tarball" --access public --ignore-scripts
           fi

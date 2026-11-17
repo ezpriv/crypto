@@ -337,9 +337,10 @@ describe("unlock keys", () => {
 		],
 		[
 			"too much memory",
-			{ opsLimit: 2, memLimit: 2 * 1024 ** 3 },
+			{ opsLimit: 2, memLimit: 256 * 1024 ** 2 + 1 },
 			"above the maximum",
 		],
+		["above a C int", { opsLimit: 2, memLimit: 2 ** 31 }, "above the maximum"],
 	])("password params with %s are refused", (_label, params, message) => {
 		expect(() =>
 			c.passwordKeys({ password: "x", salt: c.newSalt(), params }),

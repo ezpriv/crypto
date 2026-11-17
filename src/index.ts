@@ -19,8 +19,10 @@ const SEAL_BYTES = 48;
 const ARGON2ID13 = 2; // libsodium's crypto_pwhash_ALG_ARGON2ID13
 const MIN_OPS_LIMIT = 2; // OWASP's minimum for Argon2id: t=2, m=19 MiB
 const MIN_MEM_LIMIT = 19 * 1024 * 1024;
-const MAX_OPS_LIMIT = 16; // caps what a server can make a client spend; libsodium's SENSITIVE is 4 and 1 GiB
-const MAX_MEM_LIMIT = 1024 * 1024 * 1024;
+// Caps what a server can make a client spend: 4x the default memory, so a phone's WASM heap
+// survives it. Must stay below 2^31 bytes: react-native-libsodium casts memLimit to a C int.
+const MAX_OPS_LIMIT = 16;
+const MAX_MEM_LIMIT = 256 * 1024 * 1024;
 const PASSWORD_CONTEXT = "ezprivpw";
 const PASSKEY_CONTEXT = "ezprivpk";
 

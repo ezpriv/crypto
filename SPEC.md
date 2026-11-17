@@ -34,10 +34,11 @@ Every ciphertext starts with the version byte `0x01`. Anything else is refused.
 |---|---|
 | Encrypted | `0x01 ‖ nonce (24) ‖ AEAD ciphertext and tag (n + 16)` |
 | Sealed | `0x01 ‖ crypto_box_seal(header ‖ payload)` |
+| Linked | `0x01 ‖ crypto_box_seal(header ‖ 0x01 ‖ nonce (24) ‖ AEAD ciphertext and tag (64 + 16))` |
 
 - **Encrypted:** the associated data is the UTF-8 encoding of `frame(["1", label, ...fields])`. It is passed to libsodium as a string because `react-native-libsodium` takes no other type on iOS and Android.
-- **Linked:** a Sealed ciphertext whose payload is an Encrypted ciphertext with the same label and fields, under the 32-byte secret from the QR code. The secret goes from screen to camera and never to the server, so only someone who read the QR code can make one.
 - **Sealed:** `header` is the UTF-8 encoding of `frame(["1", label, ...fields])`. Opening checks that the plaintext starts with exactly the expected header, then returns the rest.
+- **Linked:** a Sealed ciphertext whose payload is an Encrypted ciphertext with the same label and fields, under the 32-byte secret from the QR code. The secret goes from screen to camera and never to the server, so only someone who read the QR code can make one. A photo of the QR code counts as reading it, so it stays secret until it's used.
 
 | Function | Kind | Label | Fields | Payload |
 |---|---|---|---|---|
@@ -61,7 +62,7 @@ Every ciphertext starts with the version byte `0x01`. Anything else is refused.
 | `key_R` | `crypto_generichash(32, entropy, UTF-8("ezpriv recovery v1"))`, where `entropy` is the 16 bytes behind 12 English BIP-39 words |
 | `key_F` | `crypto_kdf_derive_from_key(32, 1, "ezprivpk", prf)`, where `prf` is a passkey's 32-byte PRF output |
 
-- **Argon2id parameters:** the default is `opsLimit` 3 and `memLimit` 64 MiB. Anything below `opsLimit` 2 or 19 MiB (OWASP's minimum for Argon2id) is refused, so a server can't hand out weak parameters to make `authKey` cheap to crack. Anything above `opsLimit` 16 or 1 GiB, or not an integer, is refused too, so it can't stall or crash a client either.
+- **Argon2id parameters:** the default is `opsLimit` 3 and `memLimit` 64 MiB. Anything below `opsLimit` 2 or 19 MiB (OWASP's minimum for Argon2id) is refused, so a server can't hand out weak parameters to make `authKey` cheap to crack. Anything above `opsLimit` 16 or 256 MiB, or not an integer, is refused too, so a malformed or oversized value fails with a clear error instead of an out-of-memory crash or a C integer overflow on React Native. The cap must stay below 2³¹ bytes for that reason.
 - **Passwords** are normalized to Unicode NFC before hashing, so "ñ" typed on different keyboards gives the same key.
 - **Recovery words** are trimmed, lowercased and joined with single spaces. The BIP-39 checksum is checked.
 
