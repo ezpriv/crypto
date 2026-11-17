@@ -192,7 +192,8 @@ export function createCrypto(sodium: Sodium) {
 		},
 
 		/** 12 English BIP-39 words carrying 128 random bits. */
-		newRecoveryWords: () => entropyToMnemonic(sodium.randombytes_buf(16), wordlist),
+		newRecoveryWords: () =>
+			entropyToMnemonic(sodium.randombytes_buf(16), wordlist),
 
 		/** `key_R` from the 12 words. Throws on an unknown word or a bad checksum. */
 		keyFromWords(words: string): Uint8Array {
@@ -347,7 +348,11 @@ export function createCrypto(sodium: Sodium) {
 			assertLength("publicKey", userKeys.publicKey, KEY_BYTES);
 			const fields = ["ezpriv/link", channelId, userId];
 			return seal(
-				encrypt(concat(userKeys.privateKey, userKeys.publicKey), linkSecret, fields),
+				encrypt(
+					concat(userKeys.privateKey, userKeys.publicKey),
+					linkSecret,
+					fields,
+				),
 				linkPublicKey,
 				fields,
 			);
@@ -369,7 +374,11 @@ export function createCrypto(sodium: Sodium) {
 			linkKeys: LinkRequest;
 		}): KeyPair {
 			const fields = ["ezpriv/link", channelId, userId];
-			const keys = decrypt(open(sealed, linkKeys, fields), linkKeys.secret, fields);
+			const keys = decrypt(
+				open(sealed, linkKeys, fields),
+				linkKeys.secret,
+				fields,
+			);
 			assertLength("linked keys", keys, 2 * KEY_BYTES);
 			const privateKey = keys.slice(0, KEY_BYTES);
 			const publicKey = keys.slice(KEY_BYTES);

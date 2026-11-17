@@ -1,19 +1,14 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noEmit": false,
-    "declaration": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
-    "types": [],
-    "allowImportingTsExtensions": false,
-    "rewriteRelativeImportExtensions": false
-  },
-  "include": [
-    "src"
-  ]
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": false,
+		"declaration": true,
+		"outDir": "dist",
+		"rootDir": "src",
+		"lib": ["ES2022", "DOM"],
+		"types": [],
+		"allowImportingTsExtensions": false,
+		"rewriteRelativeImportExtensions": false
+	},
+	"include": ["src"]
 }

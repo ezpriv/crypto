@@ -1,38 +1,41 @@
 {
-  "name": "@ezpriv/crypto",
-  "version": "0.1.0",
-  "description": "End-to-end encryption for apps, built on libsodium: keys, unlock paths, group keys, rows, sealed messages and device linking.",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ezpriv/crypto.git"
-  },
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
-  "files": [
-    "dist",
-    "SPEC.md"
-  ],
-  "sideEffects": false,
-  "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "check-types": "tsc --noEmit",
-    "test": "vitest run",
-    "vectors": "node scripts/make-vectors.ts"
-  },
-  "packageManager": "pnpm@12.10.1",
-  "dependencies": {
-    "@scure/bip39": "2.4.0"
-  },
-  "devDependencies": {
-    "@types/node": "26.6.6",
-    "libsodium-wrappers-sumo": "0.8.4",
-    "typescript": "7.0.2",
-    "vitest": "5.1.0"
-  }
+	"name": "@ezpriv/crypto",
+	"version": "0.1.0",
+	"description": "End-to-end encryption for apps, built on libsodium: keys, unlock paths, group keys, rows, sealed messages and device linking.",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ezpriv/crypto.git"
+	},
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"SPEC.md"
+	],
+	"sideEffects": false,
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"check-types": "tsc --noEmit",
+		"test": "vitest run",
+		"vectors": "node scripts/make-vectors.ts",
+		"lint": "biome ci .",
+		"check": "biome check --write ."
+	},
+	"packageManager": "pnpm@12.10.1",
+	"dependencies": {
+		"@scure/bip39": "2.4.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.6.8",
+		"@types/node": "26.6.6",
+		"libsodium-wrappers-sumo": "0.8.4",
+		"typescript": "7.0.2",
+		"vitest": "5.1.0"
+	}
 }

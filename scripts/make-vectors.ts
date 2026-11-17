@@ -23,7 +23,13 @@ const params = { opsLimit: 2, memLimit: 19 * 1024 * 1024 };
 const passwords = ["correct horse battery staple", "contraseña segura"];
 const passwordKeys = passwords.map((password) => {
 	const { keyP, authKey } = c.passwordKeys({ password, salt, params });
-	return { password, salt: hex(salt), params, keyP: hex(keyP), authKey: hex(authKey) };
+	return {
+		password,
+		salt: hex(salt),
+		params,
+		keyP: hex(keyP),
+		authKey: hex(authKey),
+	};
 });
 const words =
 	"legal winner thank year wave sausage worth useful legal winner thank yellow";
@@ -33,7 +39,11 @@ const prf = sodium.from_hex(
 const groupKey = sodium.from_hex(
 	"a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
 );
-const keyP = c.passwordKeys({ password: passwords[0] ?? "", salt, params }).keyP;
+const keyP = c.passwordKeys({
+	password: passwords[0] ?? "",
+	salt,
+	params,
+}).keyP;
 const row = text('{"name":"Pizza","amountClp":12990}');
 const notification = text('{"title":"Pizza","body":"$12.990"}');
 const ids = {
@@ -45,10 +55,20 @@ const ids = {
 
 const vectors = {
 	version: 1,
-	keys: { user: pair(keys.user), member: pair(keys.member), link: pair(keys.link) },
+	keys: {
+		user: pair(keys.user),
+		member: pair(keys.member),
+		link: pair(keys.link),
+	},
 	frame: [
-		{ fields: ["1", "ezpriv/row", "expense", "42"], frame: frame(["1", "ezpriv/row", "expense", "42"]) },
-		{ fields: ["1", "ezpriv/user", "señal"], frame: frame(["1", "ezpriv/user", "señal"]) },
+		{
+			fields: ["1", "ezpriv/row", "expense", "42"],
+			frame: frame(["1", "ezpriv/row", "expense", "42"]),
+		},
+		{
+			fields: ["1", "ezpriv/user", "señal"],
+			frame: frame(["1", "ezpriv/user", "señal"]),
+		},
 	],
 	passwordKeys,
 	keyFromWords: [{ words, key: hex(c.keyFromWords(words)) }],
@@ -60,7 +80,12 @@ const vectors = {
 			userId: ids.userId,
 			kind: "password",
 			wrapped: hex(
-				c.wrapKey({ key: keys.user.privateKey, wrappingKey: keyP, userId: ids.userId, kind: "password" }),
+				c.wrapKey({
+					key: keys.user.privateKey,
+					wrappingKey: keyP,
+					userId: ids.userId,
+					kind: "password",
+				}),
 			),
 		},
 	],
@@ -70,7 +95,14 @@ const vectors = {
 			groupKey: hex(groupKey),
 			table: "expense",
 			rowId: ids.rowId,
-			encrypted: hex(c.encryptRow({ value: row, groupKey, table: "expense", rowId: ids.rowId })),
+			encrypted: hex(
+				c.encryptRow({
+					value: row,
+					groupKey,
+					table: "expense",
+					rowId: ids.rowId,
+				}),
+			),
 		},
 	],
 	sealGroupKey: [
@@ -78,7 +110,13 @@ const vectors = {
 			groupKey: hex(groupKey),
 			groupId: ids.groupId,
 			recipient: "member",
-			sealed: hex(c.sealGroupKey({ groupKey, groupId: ids.groupId, publicKey: keys.member.publicKey })),
+			sealed: hex(
+				c.sealGroupKey({
+					groupKey,
+					groupId: ids.groupId,
+					publicKey: keys.member.publicKey,
+				}),
+			),
 		},
 	],
 	sealForUser: [
@@ -87,7 +125,11 @@ const vectors = {
 			context: "notification",
 			recipient: "user",
 			sealed: hex(
-				c.sealForUser({ value: notification, context: "notification", publicKey: keys.user.publicKey }),
+				c.sealForUser({
+					value: notification,
+					context: "notification",
+					publicKey: keys.user.publicKey,
+				}),
 			),
 		},
 	],
