@@ -20,7 +20,7 @@ The package doesn't import libsodium. You pass in the one your runtime has:
 
 | Runtime | libsodium |
 |---|---|
-| React Native (iOS, Android) | [`react-native-libsodium`](https://github.com/serenity-kit/react-native-libsodium) |
+| React Native (iOS, Android) | [`react-native-libsodium`](https://github.com/serenity-kit/react-native-libsodium), as `import * as sodium`: its default export leaves out `crypto_box_seal` on native |
 | React Native Web, browsers, service workers | `libsodium-wrappers-sumo` (or `react-native-libsodium` after `loadSumoVersion()`) |
 | Node | `libsodium-wrappers-sumo` |
 
@@ -75,6 +75,11 @@ pnpm vectors       # regenerate vectors/vectors.json
 ## Security
 
 See [SECURITY.md](SECURITY.md) to report a vulnerability, and the "Limits" section of [SPEC.md](SPEC.md) for what this library does not protect against. It has not been audited.
+
+Two limits to know before building on it:
+
+- **It protects against a server that reads, not yet one that tampers.** Group keys and public keys aren't signed, so a server that actively swaps them can read a group's data. Signatures are planned.
+- **Linking a browser hands over the private key.** Before calling `sealForLink`, show a confirmation on the phone ("Link a new browser to your account?"), and in the browser compare the `publicKey` that `openLink` returns with the account's. Put both `publicKey` and `secret` from `newLinkRequest` in the QR code, and never send the secret to the server.
 
 ## License
 
