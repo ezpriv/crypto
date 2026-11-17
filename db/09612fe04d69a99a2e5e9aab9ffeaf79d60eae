@@ -1,0 +1,20 @@
+README.md
+  s_d1decf1a8ec844::t_dd34c6ad1d3871 23,79-82
+  s_d1decf1a8ec844::t_25d9ba8d22f3b5 83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "db09612fe04d69a99a2e5e9aab9ffeaf79d60eae",
+  "prompts": {},
+  "sessions": {
+    "s_d1decf1a8ec844": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "20890c5f-48d7-47bc-b8fd-b686949675ff",
+        "model": "claude-fable-5-2"
+      },
+      "human_author": "mvargas33 <mvargas.uchile@gmail.com>"
+    }
+  }
+}
