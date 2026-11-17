@@ -1,0 +1,19 @@
+ports/kotlin/OpenSealed.kt
+  s_d1decf1a8ec844::t_88d21f55d789a3 9,23-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8bca04c307c456bd2f5bf6f5b0544a3db14bb5a5",
+  "prompts": {},
+  "sessions": {
+    "s_d1decf1a8ec844": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "20890c5f-48d7-47bc-b8fd-b686949675ff",
+        "model": "claude-fable-5-2"
+      },
+      "human_author": "mvargas33 <mvargas.uchile@gmail.com>"
+    }
+  }
+}
