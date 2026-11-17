@@ -1,0 +1,31 @@
+src/index.ts
+  s_30e41d256a389d::t_08f960ce163fef 1-350
+src/sodium.ts
+  s_30e41d256a389d::t_ba200a400a5acc 1-50
+.gitignore
+  s_30e41d256a389d::t_ae6840aafe1f35 1-5
+package.json
+  s_30e41d256a389d::t_058c5f8562f862 1-38
+pnpm-lock.yaml
+  s_30e41d256a389d::t_ebed7b04a60598 1-1114
+tsconfig.build.json
+  s_30e41d256a389d::t_9b2db17a79362b 1-19
+tsconfig.json
+  s_30e41d256a389d::t_e195d29a8c210a 1-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9c56c1fc059fbab444ea0cf503ff3d595db1589f",
+  "prompts": {},
+  "sessions": {
+    "s_30e41d256a389d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fca15bbe-c107-40f3-8f51-1f9175f75719",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "mvargas33 <mvargas.uchile@gmail.com>"
+    }
+  }
+}
