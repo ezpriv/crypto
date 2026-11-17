@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import sodium from "libsodium-wrappers-sumo";
 import { beforeAll, describe, expect, test } from "vitest";
-import { createCrypto, frame, type KeyPair, type Sodium } from "../src/index.ts";
+import { createCrypto, frame, type KeyPair, type LinkRequest, type Sodium } from "../src/index.ts";
 
 const vectors = JSON.parse(
 	readFileSync(new URL("../vectors/vectors.json", import.meta.url), "utf8"),
@@ -18,14 +18,14 @@ const FAST = { opsLimit: 2, memLimit: 19 * 1024 * 1024 };
 let c: ReturnType<typeof createCrypto>;
 let user: KeyPair;
 let member: KeyPair;
-let link: KeyPair;
+let link: LinkRequest;
 
 beforeAll(async () => {
 	await sodium.ready;
 	c = createCrypto(sodium satisfies Sodium);
 	user = pair(vectors.keys.user);
 	member = pair(vectors.keys.member);
-	link = pair(vectors.keys.link);
+	link = { ...pair(vectors.keys.link), secret: bytes(vectors.keys.link.secret) };
 });
 
 describe("vectors", () => {
@@ -115,7 +115,7 @@ describe("refusals", () => {
 		const groupKey = c.newGroupKey();
 		const sealedKey = c.sealGroupKey({ groupKey, groupId: "g1", publicKey: member.publicKey });
 		const notification = c.sealForUser({ value: text("x"), context: "notification", publicKey: user.publicKey });
-		const linked = c.sealForLink({ userKeys: user, channelId: "ch1", userId: "u1", linkPublicKey: link.publicKey });
+		const linked = c.sealForLink({ userKeys: user, channelId: "ch1", userId: "u1", linkPublicKey: link.publicKey, linkSecret: link.secret });
 
 		expect(c.openGroupKey({ sealed: sealedKey, groupId: "g1", keyPair: member })).toEqual(groupKey);
 		expect(() => c.openGroupKey({ sealed: sealedKey, groupId: "g2", keyPair: member })).toThrow("wrong context");
@@ -124,6 +124,16 @@ describe("refusals", () => {
 		expect(() => c.openSealed({ sealed: flip(notification, 60), context: "notification", keyPair: user })).toThrow("cannot open");
 		expect(() => c.openLink({ sealed: linked, channelId: "ch2", userId: "u1", linkKeys: link })).toThrow("wrong context");
 		expect(() => c.openLink({ sealed: linked, channelId: "ch1", userId: "u2", linkKeys: link })).toThrow("wrong context");
+	});
+
+	test("links refuse keys from someone who only has the public key, or a pair that doesn't match", () => {
+		const attacker = c.createUserKeys();
+		const ids = { channelId: "ch1", userId: "u1" };
+		const blind = c.sealForLink({ ...ids, userKeys: attacker, linkPublicKey: link.publicKey, linkSecret: c.newGroupKey() });
+		const mixed = c.sealForLink({ ...ids, userKeys: { privateKey: attacker.privateKey, publicKey: user.publicKey }, linkPublicKey: link.publicKey, linkSecret: link.secret });
+
+		expect(() => c.openLink({ ...ids, sealed: blind, linkKeys: link })).toThrow("cannot decrypt");
+		expect(() => c.openLink({ ...ids, sealed: mixed, linkKeys: link })).toThrow("don't match");
 	});
 });
 
@@ -138,6 +148,15 @@ describe("unlock keys", () => {
 		expect(() => c.passwordKeys({ password: "x", salt, params: { opsLimit: 1, memLimit: FAST.memLimit } })).toThrow("below the minimum");
 		expect(() => c.passwordKeys({ password: "x", salt, params: { opsLimit: 2, memLimit: 1024 * 1024 } })).toThrow("below the minimum");
 		expect(() => c.passwordKeys({ password: "x", salt: salt.slice(0, 8), params: FAST })).toThrow("salt must be 16 bytes");
+	});
+
+	test.each([
+		["NaN", { opsLimit: Number.NaN, memLimit: Number.NaN }, "must be integers"],
+		["a fraction", { opsLimit: 2.5, memLimit: FAST.memLimit }, "must be integers"],
+		["too many passes", { opsLimit: 17, memLimit: FAST.memLimit }, "above the maximum"],
+		["too much memory", { opsLimit: 2, memLimit: 2 * 1024 ** 3 }, "above the maximum"],
+	])("password params with %s are refused", (_label, params, message) => {
+		expect(() => c.passwordKeys({ password: "x", salt: c.newSalt(), params })).toThrow(message);
 	});
 
 	test("recovery words round-trip and tolerate spacing and case", () => {

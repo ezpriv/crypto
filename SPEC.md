@@ -36,6 +36,7 @@ Every ciphertext starts with the version byte `0x01`. Anything else is refused.
 | Sealed | `0x01 ‖ crypto_box_seal(header ‖ payload)` |
 
 - **Encrypted:** the associated data is the UTF-8 encoding of `frame(["1", label, ...fields])`. It is passed to libsodium as a string because `react-native-libsodium` takes no other type on iOS and Android.
+- **Linked:** a Sealed ciphertext whose payload is an Encrypted ciphertext with the same label and fields, under the 32-byte secret from the QR code. The secret goes from screen to camera and never to the server, so only someone who read the QR code can make one.
 - **Sealed:** `header` is the UTF-8 encoding of `frame(["1", label, ...fields])`. Opening checks that the plaintext starts with exactly the expected header, then returns the rest.
 
 | Function | Kind | Label | Fields | Payload |
@@ -44,9 +45,11 @@ Every ciphertext starts with the version byte `0x01`. Anything else is refused.
 | `encryptRow` | Encrypted | `ezpriv/row` | `table`, `rowId` | The row's bytes |
 | `sealGroupKey` | Sealed | `ezpriv/group-key` | `groupId` | The group key (32 bytes) |
 | `sealForUser` | Sealed | `ezpriv/user` | `context` | The value |
-| `sealForLink` | Sealed | `ezpriv/link` | `channelId`, `userId` | Private key (32) ‖ public key (32) |
+| `sealForLink` | Linked | `ezpriv/link` | `channelId`, `userId` | Private key (32) ‖ public key (32) |
 
 `kind` names the way to unlock (for example `password`, `recovery`, `passkey:<credentialId>`, `device`). `context` names what a sealed value is (for example `movement`, `notification`).
+
+`openLink` also refuses a private key and public key that don't belong together.
 
 ## Derived keys
 
@@ -58,13 +61,14 @@ Every ciphertext starts with the version byte `0x01`. Anything else is refused.
 | `key_R` | `crypto_generichash(32, entropy, UTF-8("ezpriv recovery v1"))`, where `entropy` is the 16 bytes behind 12 English BIP-39 words |
 | `key_F` | `crypto_kdf_derive_from_key(32, 1, "ezprivpk", prf)`, where `prf` is a passkey's 32-byte PRF output |
 
-- **Argon2id parameters:** the default is `opsLimit` 3 and `memLimit` 64 MiB. Anything below `opsLimit` 2 or 19 MiB (OWASP's minimum for Argon2id) is refused, so a server can't hand out weak parameters to make `authKey` cheap to crack.
+- **Argon2id parameters:** the default is `opsLimit` 3 and `memLimit` 64 MiB. Anything below `opsLimit` 2 or 19 MiB (OWASP's minimum for Argon2id) is refused, so a server can't hand out weak parameters to make `authKey` cheap to crack. Anything above `opsLimit` 16 or 1 GiB, or not an integer, is refused too, so it can't stall or crash a client either.
 - **Passwords** are normalized to Unicode NFC before hashing, so "ñ" typed on different keyboards gives the same key.
 - **Recovery words** are trimmed, lowercased and joined with single spaces. The BIP-39 checksum is checked.
 
 ## Limits
 
-- **Sealed messages are anonymous.** Anyone with a public key can seal to it. `openGroupKey` can't tell who sealed a group key, so a server could seal a key it knows. Signatures (`crypto_sign`) are planned for a later version.
+- **An active server can read group data.** Sealed messages are anonymous: anyone with a public key can seal to it. `openGroupKey` can't tell who sealed a group key, so a server could seal a key it knows. Public keys aren't authenticated either: a server could hand out its own in place of a member's and receive the group key. Until signatures (`crypto_sign`) and key fingerprints arrive in a later version, the data is only safe from a server that stores and reads but doesn't tamper.
+- **Linking trusts whoever shows the QR code.** `sealForLink` sends the private key to the browser behind the code the phone scanned. If an attacker gets a user to scan theirs, they get the key. The app must ask the user to confirm on the phone.
 - **No forward secrecy.** Whoever gets a private key can open everything sealed to it.
 - **No key rotation bookkeeping.** The caller records which group key encrypted each row.
 - **JavaScript can't wipe memory.** Keys stay until garbage collection.

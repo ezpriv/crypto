@@ -7,9 +7,10 @@ await sodium.ready;
 const c = createCrypto(sodium);
 const hex = (bytes: Uint8Array) => sodium.to_hex(bytes);
 const text = (value: string) => new TextEncoder().encode(value);
-const pair = (keys: KeyPair) => ({
+const pair = (keys: KeyPair & { secret?: Uint8Array }) => ({
 	publicKey: hex(keys.publicKey),
 	privateKey: hex(keys.privateKey),
+	...(keys.secret && { secret: hex(keys.secret) }),
 });
 
 const keys = {
@@ -101,6 +102,7 @@ const vectors = {
 					channelId: ids.channelId,
 					userId: ids.userId,
 					linkPublicKey: keys.link.publicKey,
+					linkSecret: keys.link.secret,
 				}),
 			),
 		},
