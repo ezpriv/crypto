@@ -1,0 +1,27 @@
+.github/workflows/release.yml
+  s_30e41d256a389d::t_bedf573df11735 52
+README.md
+  s_30e41d256a389d::t_6565cb0acefe3b 82
+SPEC.md
+  s_30e41d256a389d::t_be0a293b123abf 37,41,65
+src/index.ts
+  s_30e41d256a389d::t_f804cfb9319f24 22-25
+test/crypto.test.ts
+  s_30e41d256a389d::t_3ba3b63d935f05 340,343
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "186e1267bd382a1de1a3f5f80a317a9016294b56",
+  "prompts": {},
+  "sessions": {
+    "s_30e41d256a389d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fca15bbe-c107-40f3-8f51-1f9175f75719",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "mvargas33 <mvargas.uchile@gmail.com>"
+    }
+  }
+}
