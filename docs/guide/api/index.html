@@ -62,7 +62,7 @@
 			<h3>passwordKeys</h3>
 			<pre class="sig"><code class="language-ts">passwordKeys({ password, salt, params? }): { keyP, authKey }</code></pre>
 			<p>Argon2id over the NFC-normalized password, then two subkeys: <code>keyP</code> wraps <code>key_A</code>, <code>authKey</code> is sent at sign-in instead of the password. <code>params</code> defaults to <code>DEFAULT_PASSWORD_PARAMS</code>.</p>
-			<p><strong>Throws:</strong> <code>salt must be 16 bytes</code>, <code>password params must be integers</code>, <code>password params below the minimum</code> (under 2 passes or 19 MiB), <code>password params above the maximum</code> (over 16 passes or 256 MiB).</p>
+			<p><strong>Throws:</strong> <code>salt must be 16 bytes</code>, <code>password params must be integers</code>, <code>password params below the minimum</code> (under 2 passes or 19 MiB), <code>password params above the maximum</code> (over 16 passes or 256 MiB), <code>cannot hash password</code> (Argon2id failed, for example out of memory).</p>
 			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Spec</a></p>
 		</section>
 		<section class="api-entry" id="newRecoveryWords">
@@ -76,7 +76,7 @@
 			<h3>keyFromWords</h3>
 			<pre class="sig"><code class="language-ts">keyFromWords(words: string): Uint8Array</code></pre>
 			<p><code>key_R</code> from the 12 words. Trims, lowercases and joins with single spaces first, so case and extra spaces don't matter.</p>
-			<p><strong>Throws:</strong> an unknown word, a bad checksum or the wrong number of words.</p>
+			<p><strong>Throws:</strong> <code>invalid recovery words</code> (an unknown word, a bad checksum or the wrong number of words), without quoting what was typed. A valid 24-word phrase gives <code>recovery entropy must be 16 bytes</code>.</p>
 			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Spec</a></p>
 		</section>
 		<section class="api-entry" id="keyFromPrf">
@@ -118,7 +118,7 @@
 			<h3>sealGroupKey</h3>
 			<pre class="sig"><code class="language-ts">sealGroupKey({ groupKey, groupId, publicKey }): Uint8Array</code></pre>
 			<p>Seals a group key to one member's public key, bound to the group id.</p>
-			<p><strong>Throws:</strong> <code>groupKey must be 32 bytes</code>, <code>publicKey must be 32 bytes</code>.</p>
+			<p><strong>Throws:</strong> <code>groupKey must be 32 bytes</code>, <code>publicKey must be 32 bytes</code>, <code>invalid public key</code> (a key libsodium refuses, such as 32 zero bytes).</p>
 			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
 		</section>
 		<section class="api-entry" id="openGroupKey">
@@ -132,7 +132,7 @@
 			<h3>sealForUser</h3>
 			<pre class="sig"><code class="language-ts">sealForUser({ value, context, publicKey }): Uint8Array</code></pre>
 			<p>Seals a value to a user's public key: anyone (the server) can seal, only the user opens. <code>context</code> names what it is.</p>
-			<p><strong>Throws:</strong> <code>publicKey must be 32 bytes</code>.</p>
+			<p><strong>Throws:</strong> <code>publicKey must be 32 bytes</code>, <code>invalid public key</code>.</p>
 			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
 		</section>
 		<section class="api-entry" id="openSealed">
@@ -153,7 +153,7 @@
 			<h3>sealForLink</h3>
 			<pre class="sig"><code class="language-ts">sealForLink({ userKeys, channelId, userId, linkPublicKey, linkSecret }): Uint8Array</code></pre>
 			<p>On the phone: encrypts the user's key pair under the QR secret, then seals it to the browser's one-time public key. Ask the user to confirm first: whoever showed the QR code gets the private key.</p>
-			<p><strong>Throws:</strong> <code>privateKey must be 32 bytes</code>, <code>publicKey must be 32 bytes</code>, <code>key must be 32 bytes</code>.</p>
+			<p><strong>Throws:</strong> <code>privateKey must be 32 bytes</code>, <code>publicKey must be 32 bytes</code>, <code>key must be 32 bytes</code>, <code>invalid public key</code> (the link public key from the QR code).</p>
 			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
 		</section>
 		<section class="api-entry" id="openLink">
@@ -176,7 +176,7 @@ interface LinkRequest extends KeyPair { secret: Uint8Array }
 interface PasswordParams { opsLimit: number; memLimit: number /* bytes */ }</code></pre>
 		<p><code>Sodium</code> lists the libsodium functions the package calls, and nothing else. <code>libsodium-wrappers-sumo</code> and <code>react-native-libsodium</code> both satisfy it.</p>
 		<h2 id="errors">Errors</h2>
-		<p>Every error is a plain <code>Error</code> whose message starts with <code>ezpriv:</code>. libsodium's own errors are caught and replaced, so the messages are the same on every runtime. Two exceptions for now, whose messages don't start with <code>ezpriv:</code>: <code>keyFromWords</code> passes on the errors of <code>@scure/bip39</code>, which can quote the mistyped word, so keep them out of logs; and <code>sealGroupKey</code>, <code>sealForUser</code> and <code>sealForLink</code> pass on libsodium's own error for an invalid public key (such as 32 zero bytes).</p>
+		<p>Every error is a plain <code>Error</code> whose message starts with <code>ezpriv:</code>. libsodium's own errors are caught and replaced, so the messages are the same on every runtime.</p>
 		<div class="table-wrap"><table>
 			<thead><tr><th>Message</th><th>Means</th></tr></thead>
 			<tbody>
@@ -187,6 +187,9 @@ interface PasswordParams { opsLimit: number; memLimit: number /* bytes */ }</cod
 				<tr><td><code>ezpriv: ciphertext too short</code></td><td>Truncated input</td></tr>
 				<tr><td><code>ezpriv: &lt;name&gt; must be &lt;n&gt; bytes</code></td><td>A key, salt or PRF output of the wrong length</td></tr>
 				<tr><td><code>ezpriv: password params …</code></td><td>Argon2id parameters that aren't integers, or are outside the floor and cap</td></tr>
+				<tr><td><code>ezpriv: invalid public key</code></td><td>Sealing to a public key libsodium refuses, such as 32 zero bytes</td></tr>
+				<tr><td><code>ezpriv: cannot hash password</code></td><td>Argon2id failed, for example when it can't allocate its memory</td></tr>
+				<tr><td><code>ezpriv: invalid recovery words</code></td><td>An unknown word, a bad checksum or the wrong number of words</td></tr>
 				<tr><td><code>ezpriv: linked keys don't match</code></td><td><code>openLink</code> got a private key that doesn't belong to the public key</td></tr>
 			</tbody>
 		</table></div>
