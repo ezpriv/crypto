@@ -26,7 +26,8 @@
 		"vectors": "node scripts/make-vectors.ts",
 		"lint": "biome ci .",
 		"check": "biome check --write .",
-		"check-pins": "node scripts/check-pins.ts"
+		"check-pins": "node scripts/check-pins.ts",
+		"examples": "node scripts/run-examples.ts"
 	},
 	"packageManager": "pnpm@12.10.1",
 	"dependencies": {
