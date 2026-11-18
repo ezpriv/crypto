@@ -1,6 +1,6 @@
 {
 	"name": "@ezpriv/crypto",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "End-to-end encryption for apps, built on libsodium: keys, unlock paths, group keys, rows, sealed messages and device linking.",
 	"license": "MIT",
 	"repository": {

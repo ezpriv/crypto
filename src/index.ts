@@ -199,10 +199,16 @@ export function createCrypto(sodium: Sodium) {
 
 		/** `key_R` from the 12 words. Throws on an unknown word or a bad checksum. */
 		keyFromWords(words: string): Uint8Array {
-			const entropy = mnemonicToEntropy(
-				words.trim().toLowerCase().split(/\s+/).join(" "),
-				wordlist,
-			);
+			let entropy: Uint8Array;
+			try {
+				entropy = mnemonicToEntropy(
+					words.trim().toLowerCase().split(/\s+/).join(" "),
+					wordlist,
+				);
+			} catch {
+				// @scure/bip39's messages can quote a mistyped word, which is part of a secret.
+				throw new Error("ezpriv: invalid recovery words");
+			}
 			assertLength("recovery entropy", entropy, 16);
 			return sodium.crypto_generichash(
 				KEY_BYTES,
