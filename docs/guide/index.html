@@ -87,7 +87,7 @@ const sealed = ez.sealForUser({ value: bytes, context: "notification", publicKey
 		<h3>Linking a browser</h3>
 		<p>A new browser shows a QR code with a one-time public key and a secret. The phone seals the user's key pair for it. The secret goes from screen to camera, never to the server.</p>
 		<h3>Errors</h3>
-		<p>Every error is a plain <code>Error</code> whose message starts with <code>ezpriv:</code>, the same on every runtime, for example <code>ezpriv: cannot decrypt</code> or <code>ezpriv: wrong context</code>. One exception for now: <code>keyFromWords</code> passes on the errors of <code>@scure/bip39</code>, which don't start with <code>ezpriv:</code>. See the <a href="/guide/api/#errors">API reference</a>.</p>
+		<p>Every error is a plain <code>Error</code> whose message starts with <code>ezpriv:</code>, the same on every runtime, for example <code>ezpriv: cannot decrypt</code> or <code>ezpriv: wrong context</code>. Two exceptions for now: <code>keyFromWords</code> passes on the errors of <code>@scure/bip39</code>, and sealing to an invalid public key (such as 32 zero bytes) passes on libsodium's own. Neither starts with <code>ezpriv:</code>. See the <a href="/guide/api/#errors">API reference</a>.</p>
 		<h2 id="format">The format</h2>
 		<p>Every ciphertext starts with the version byte <code>0x01</code>. There are two kinds plus one composite:</p>
 		<div class="table-wrap"><table>
