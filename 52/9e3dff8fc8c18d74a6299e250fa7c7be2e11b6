@@ -1,0 +1,19 @@
+docs/guide/api/index.html
+  s_928b16fe3be95c::t_ee1df4dbe7f988 79,192
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "529e3dff8fc8c18d74a6299e250fa7c7be2e11b6",
+  "prompts": {},
+  "sessions": {
+    "s_928b16fe3be95c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2bac7ae3-5cc1-46fb-9ed2-4968abe139c1",
+        "model": "unknown"
+      },
+      "human_author": "mvargas33 <mvargas.uchile@gmail.com>"
+    }
+  }
+}
