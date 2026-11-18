@@ -263,6 +263,34 @@ describe("refusals", () => {
 		).toThrow("wrong context");
 	});
 
+	test.each([
+		[
+			"sealGroupKey",
+			(publicKey: Uint8Array) =>
+				c.sealGroupKey({ groupKey: c.newGroupKey(), groupId: "g1", publicKey }),
+		],
+		[
+			"sealForUser",
+			(publicKey: Uint8Array) =>
+				c.sealForUser({ value: text("x"), context: "notification", publicKey }),
+		],
+		[
+			"sealForLink",
+			(publicKey: Uint8Array) =>
+				c.sealForLink({
+					userKeys: user,
+					channelId: "ch1",
+					userId: "u1",
+					linkPublicKey: publicKey,
+					linkSecret: link.secret,
+				}),
+		],
+	])("%s refuses a small-order public key", (_name, seal) => {
+		const zeros = new Uint8Array(32);
+
+		expect(() => seal(zeros)).toThrow(/^ezpriv: invalid public key$/);
+	});
+
 	test("links refuse keys from someone who only has the public key, or a pair that doesn't match", () => {
 		const attacker = c.createUserKeys();
 		const ids = { channelId: "ch1", userId: "u1" };
@@ -378,6 +406,19 @@ describe("unlock keys", () => {
 		expect(() => c.keyFromPrf(new Uint8Array(16))).toThrow(
 			"prf must be 32 bytes",
 		);
+	});
+
+	test("a failed Argon2id run throws an ezpriv error", () => {
+		const failing = createCrypto({
+			...sodium,
+			crypto_pwhash: () => {
+				throw new Error("out of memory");
+			},
+		});
+
+		expect(() =>
+			failing.passwordKeys({ password: "x", salt: c.newSalt(), params: FAST }),
+		).toThrow(/^ezpriv: cannot hash password$/);
 	});
 
 	test("libsodium's Argon2id id matches the hard-coded one", () => {
