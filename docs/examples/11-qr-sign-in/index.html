@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>11 · Sign in on a computer by QR code · ezpriv/crypto</title>
+	<meta name="description" content="On the web version, the user scans a QR code with the phone, confirms, and the computer is signed in with all their data, without typing a password.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/examples/11-qr-sign-in/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+	<script type="module" src="/assets/flow-player.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<div class="crumbs"><a href="/examples/">Examples</a> / 11</div>
+		<span class="eyebrow">Example 11</span>
+		<h1>Sign in on a computer by QR code</h1>
+		<p class="lead">On the web version, the user scans a QR code with the phone, confirms, and the computer is signed in with all their data, without typing a password.</p>
+		<div class="links">
+			<a class="button" href="#in-practice">In practice</a>
+			<a class="button" href="#flow">Step-by-step flow</a>
+			<a class="button" href="#code">Code</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/blob/main/example/11-qr-sign-in/index.ts">View on GitHub</a>
+		</div>
+
+		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
+		<div class="prose">
+			<p><strong>What the user sees.</strong> On the web version, the user scans a QR code with the phone, confirms, and the computer is signed in with all their data, without typing a password. Behind that, the computer makes a one-time key pair and secret (<code>newLinkRequest</code>) and opens a channel on the server, which returns a <code>channelId</code> and a <code>receiveToken</code>. The QR code shows the channel, the one-time public key and the secret. The phone seals the user's key pair for that computer (<code>sealForLink</code>), and the server ties the channel to the user and creates a session. The computer receives with its <code>receiveToken</code>, opens the keys (<code>openLink</code>) and checks the public key is the account's.</p>
+			<p><strong>Why.</strong> Typing a long password on a shared or new computer is slow and exposes it to keyloggers. The phone already holds <code>key_A</code>, and the QR code is a channel from screen to camera that the server never sees.</p>
+			<h3>What the example shows failing</h3>
+<div class="table-wrap"><table><thead><tr><th>Attacker</th><th>Has</th><th>Fails because</th></tr></thead><tbody><tr><td>Knows only the computer's public key</td><td><code>channelId</code>, public key, no secret</td><td>Their sealed keys don't decrypt under the real secret: <code>cannot decrypt</code></td></tr><tr><td>A photo of the QR code</td><td><code>channelId</code>, public key, secret</td><td>No <code>receiveToken</code>, so the server gives nothing. And the sealed keys open only with the computer's private key, which never left it: <code>cannot open</code></td></tr><tr><td>A phone sending a private key of another pair</td><td>a mismatched key pair</td><td><code>openLink</code> checks the pair: <code>linked keys don&#x27;t match</code></td></tr></tbody></table></div>
+		</div>
+		<div class="two-col">
+			<div class="pros"><h3>Pros</h3><ul><li>No password typed on the computer. The server never sees the secret, and never sees <code>key_A</code>.</li><li>Only someone who read the QR code can make a link the computer accepts, so a server can't push its own keys to the computer.</li><li>A photo of the code can't receive the session or open the keys.</li><li>The channel works once and the computer checks the public key, so a replayed or swapped link is caught.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>Linking trusts whoever shows the QR code.</strong> If an attacker gets the user to scan the attacker's code (a phishing page that shows its own QR), the attacker's computer gets <code>key_A</code> (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>). The phone must ask the user to confirm, with what the server saw of that browser (type, rough location), and the app's prefix keeps other apps from scanning it for you.</li><li><strong>The QR code is secret until it's used.</strong> A photo of it is enough to forge a link to that computer. Keep channels short-lived.</li><li><strong>The browser then holds <code>key_A</code>,</strong> with the risks of any web copy (<a href="/examples/05-device-and-synced-copies/">05</a>): scripts on the page can read it. Offer "sign out of all browsers".</li><li><strong>The whole key pair moves.</strong> There's no per-device key to revoke. Removing a computer's access means signing it out; it keeps any key it copied.</li></ul></div>
+		</div>
+
+		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
+		<p class="lead">Each step shows who acts, which function runs, what travels and what every party holds afterwards. Use the controls, the step list or the arrow keys to replay any step.</p>
+		<section class="player" data-flow="./flow.js" aria-label="Animated flow of example 11">
+			<noscript>This animation needs JavaScript. The sequence diagram is in the <a href="https://github.com/ezpriv/crypto/tree/main/example/11-qr-sign-in#flow">example's README</a>.</noscript>
+		</section>
+
+		<h2 id="code"><span class="section-tag">3</span>Code</h2>
+		<div class="prose">
+			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/11-qr-sign-in/index.ts"><code>example/11-qr-sign-in/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
+			<pre><code class="language-ts">// computer
+const link = ez.newLinkRequest();
+const qr = `example-link:1:${channelId}:${toB64url(link.publicKey)}:${toB64url(link.secret)}`;
+
+// phone, after the user confirms
+const { channelId, linkPublicKey, linkSecret } = parseQr(qr);
+const sealed = ez.sealForLink({ userKeys: ana, channelId, userId: &quot;ana&quot;, linkPublicKey, linkSecret });
+
+// computer, after receiving with its receiveToken
+const keys = ez.openLink({ sealed, channelId, userId, linkKeys: link });
+assert.deepEqual(keys.publicKey, accountPublicKey);</code></pre>
+<p>The <code>example-link:</code> prefix is the app's own, so neither another app nor the system camera acts on the code. <code>receiveToken</code> is not in it.</p>
+<div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>newLinkRequest</code>, <code>sealForLink</code>, <code>openLink</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a> (Linked)</td></tr></tbody></table></div>
+			<h3>Run it</h3>
+			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
+pnpm install &amp;&amp; pnpm build
+node example/11-qr-sign-in/index.ts</code></pre>
+		</div>
+		<div class="links">
+			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/11-qr-sign-in/index.ts">Full example on GitHub</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/11-qr-sign-in">README with the sequence diagram</a>
+		</div>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/10-push-notifications/">← 10 · Push notifications</a><a class="button" href="/examples/12-live-table-link/">12 · Live receipt table by link →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

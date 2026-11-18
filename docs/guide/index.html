@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Guide · ezpriv/crypto</title>
+	<meta name="description" content="Install @ezpriv/crypto, pass in your runtime&#x27;s libsodium, and learn the concepts: user keys, unlock paths, group keys, rows, sealed values and linking.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/guide/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<span class="eyebrow">Guide</span>
+		<h1>Getting started</h1>
+		<p class="lead">Install the package, pass in the libsodium your runtime has, and every function takes and returns <code>Uint8Array</code>.</p>
+		<div class="prose">
+		<h2 id="install">Install</h2>
+		<pre><code class="language-bash">npm install @ezpriv/crypto</code></pre>
+		<h2 id="runtimes">Runtimes</h2>
+		<p>The package doesn't import libsodium. You pass in the one your runtime has:</p>
+		<div class="table-wrap"><table>
+			<thead><tr><th>Runtime</th><th>libsodium</th></tr></thead>
+			<tbody>
+				<tr><td>React Native (iOS, Android)</td><td><a href="https://github.com/serenity-kit/react-native-libsodium"><code>react-native-libsodium</code></a>, imported as <code>import * as sodium</code>: its default export leaves out <code>crypto_box_seal</code> on native</td></tr>
+				<tr><td>React Native Web, browsers, service workers</td><td><code>libsodium-wrappers-sumo</code> (or <code>react-native-libsodium</code> after <code>loadSumoVersion()</code>)</td></tr>
+				<tr><td>Node</td><td><code>libsodium-wrappers-sumo</code></td></tr>
+			</tbody>
+		</table></div>
+		<p>The sumo build is needed for <code>passwordKeys</code> (Argon2id). In browsers, WebAssembly needs <code>'wasm-unsafe-eval'</code> in the page's <code>script-src</code>.</p>
+		<h2 id="quick-start">Quick start</h2>
+		<pre><code class="language-ts">import sodium from "libsodium-wrappers-sumo";
+import { createCrypto } from "@ezpriv/crypto";
+
+await sodium.ready;
+const ez = createCrypto(sodium);
+
+// Sign-up: a key pair, and two ways to unlock it.
+const user = ez.createUserKeys();
+const salt = ez.newSalt();
+const { keyP, authKey } = ez.passwordKeys({ password, salt });
+const passwordWrap = ez.wrapKey({ key: user.privateKey, wrappingKey: keyP, userId, kind: "password" });
+const words = ez.newRecoveryWords(); // show once
+const recoveryWrap = ez.wrapKey({ key: user.privateKey, wrappingKey: ez.keyFromWords(words), userId, kind: "recovery" });
+// Store user.publicKey, salt, passwordWrap and recoveryWrap on the server. Send authKey at sign-in, never the password.
+
+// A group and its rows.
+const groupKey = ez.newGroupKey();
+const forMember = ez.sealGroupKey({ groupKey, groupId, publicKey: memberPublicKey });
+const encrypted = ez.encryptRow({ value: bytes, groupKey, table: "expense", rowId });
+
+// On the server: seal something only the user can read.
+const sealed = ez.sealForUser({ value: bytes, context: "notification", publicKey: user.publicKey });</code></pre>
+		<p>Encoding (base64, JSON) is up to the app. The <a href="/examples/">examples</a> show each of these in a full flow.</p>
+		<h2 id="concepts">Concepts</h2>
+		<h3>The user's key pair</h3>
+		<p>Each user has an X25519 key pair. The private key, called <code>key_A</code>, is what everything else depends on: it opens the user's group keys and every value sealed to them. The server stores the public key and never <code>key_A</code>.</p>
+		<h3>Ways to unlock <code>key_A</code></h3>
+		<p><code>key_A</code> is stored on the server only as wraps: encrypted copies under keys the server can't derive. Each wrap is bound to the user id and to its kind, so one can't pass for another.</p>
+		<div class="table-wrap"><table>
+			<thead><tr><th>Kind</th><th>Wrapping key</th><th>Example</th></tr></thead>
+			<tbody>
+				<tr><td><code>password</code></td><td><code>keyP</code>, from Argon2id over the password</td><td><a href="/examples/01-account-setup/">01</a>, <a href="/examples/02-unlock-with-password/">02</a></td></tr>
+				<tr><td><code>recovery</code></td><td><code>key_R</code>, from 12 BIP-39 words</td><td><a href="/examples/03-recover-with-words/">03</a></td></tr>
+				<tr><td><code>passkey:&lt;credentialId&gt;</code></td><td><code>key_F</code>, from a passkey's PRF output</td><td><a href="/examples/04-passkey-prf/">04</a></td></tr>
+				<tr><td>another device</td><td>platform storage, or a QR link</td><td><a href="/examples/05-device-and-synced-copies/">05</a>, <a href="/examples/11-qr-sign-in/">11</a></td></tr>
+			</tbody>
+		</table></div>
+		<h3>Group keys and rows</h3>
+		<p>A group (a trip, a flat) has a random 32-byte key, sealed to each member's public key. Rows are encrypted under it, each bound to its table and row id. Removing a member means a new key version for the members who stay.</p>
+		<h3>Sealed values</h3>
+		<p>Anyone with a user's public key can seal a value to it, and only the user opens it. The server uses this for incoming data and the sender's app for push notifications. A <code>context</code> such as <code>movement</code> or <code>notification</code> keeps one kind from passing for another.</p>
+		<h3>Linking a browser</h3>
+		<p>A new browser shows a QR code with a one-time public key and a secret. The phone seals the user's key pair for it. The secret goes from screen to camera, never to the server.</p>
+		<h3>Errors</h3>
+		<p>Every error is a plain <code>Error</code> whose message starts with <code>ezpriv:</code>, the same on every runtime, for example <code>ezpriv: cannot decrypt</code> or <code>ezpriv: wrong context</code>. Two exceptions for now: <code>keyFromWords</code> passes on the errors of <code>@scure/bip39</code>, and sealing to an invalid public key (such as 32 zero bytes) passes on libsodium's own. Neither starts with <code>ezpriv:</code>. See the <a href="/guide/api/#errors">API reference</a>.</p>
+		<h2 id="format">The format</h2>
+		<p>Every ciphertext starts with the version byte <code>0x01</code>. There are two kinds plus one composite:</p>
+		<div class="table-wrap"><table>
+			<thead><tr><th>Kind</th><th>Bytes</th><th>Used by</th></tr></thead>
+			<tbody>
+				<tr><td>Encrypted</td><td><code>0x01 ‖ nonce (24) ‖ XChaCha20-Poly1305 ciphertext and tag</code></td><td><code>wrapKey</code>, <code>encryptRow</code></td></tr>
+				<tr><td>Sealed</td><td><code>0x01 ‖ crypto_box_seal(header ‖ payload)</code></td><td><code>sealGroupKey</code>, <code>sealForUser</code></td></tr>
+				<tr><td>Linked</td><td>an Encrypted value under the QR secret, inside a Sealed box</td><td><code>sealForLink</code></td></tr>
+			</tbody>
+		</table></div>
+		<p>The labels and fields bound into each kind, the derived keys and the Argon2id bounds are in <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">SPEC.md</a>, the source of truth for every port, checked by <a href="https://github.com/ezpriv/crypto/blob/main/vectors/vectors.json">test vectors</a>.</p>
+		<h2 id="other-languages">Other languages</h2>
+		<p>The iOS Notification Service Extension and the Android notification service can't run JavaScript, so the repo has a small <code>openSealed</code> for each:</p>
+		<ul>
+			<li><a href="https://github.com/ezpriv/crypto/tree/main/ports/swift"><code>ports/swift</code></a>: a Swift package on swift-sodium, tested against the vectors.</li>
+			<li><a href="https://github.com/ezpriv/crypto/tree/main/ports/kotlin"><code>ports/kotlin</code></a>: one file on lazysodium-android. Not tested yet.</li>
+		</ul>
+		<h2 id="development">Development</h2>
+		<pre><code class="language-bash">pnpm install
+pnpm test          # Vitest, including vectors/vectors.json
+pnpm check-types
+pnpm build         # dist/
+pnpm examples      # every example, in order</code></pre>
+		</div>
+		<nav class="pager" aria-label="Guide"><a class="button" href="/">← Home</a><a class="button" href="/guide/api/">API reference →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

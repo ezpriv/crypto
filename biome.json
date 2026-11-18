@@ -11,6 +11,7 @@
 			"!**/dist",
 			"!**/node_modules",
 			"!vectors/vectors.json",
+			"!docs/assets/vendor",
 			"!**/*.md"
 		]
 	},

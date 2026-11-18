@@ -1,0 +1,73 @@
+export default {
+	actors: [
+		{
+			id: "ben",
+			name: "Ben's phone",
+			kind: "phone",
+			holds: ["public:Ana's publicKey"],
+		},
+		{ id: "server", name: "Server", kind: "server" },
+		{ id: "push", name: "APNs / FCM", kind: "cloud", note: "Apple and Google" },
+		{
+			id: "ana",
+			name: "Ana's phone",
+			kind: "phone",
+			note: "locked",
+			holds: ["secret:key_A"],
+		},
+	],
+	steps: [
+		{
+			title: "Ben adds an expense",
+			at: "ben",
+			text: "Dinner, 42.00, in a group Ana is in (example 06).",
+		},
+		{
+			title: "Seal the text for each recipient",
+			at: "ben",
+			call: 'ez.sealForUser({ value: text, context: "notification", publicKey })',
+			text: "Once per recipient. The text never leaves Ben's phone in the clear.",
+			add: { ben: ["cipher:sealed for Ana"] },
+		},
+		{
+			title: "Send it",
+			from: "ben",
+			to: "server",
+			carry: "cipher:sealed payload",
+			text: "The server only routes it to Ana's push tokens.",
+			drop: { ben: ["sealed for Ana"] },
+		},
+		{
+			title: "Push with a fallback",
+			from: "server",
+			to: "push",
+			carry: "cipher:New activity + sealed",
+			call: '{ aps: { alert: fallback, "mutable-content": 1 }, ezpriv: base64url(sealed) }',
+			text: "Apple and Google see only the fallback text and the sealed bytes, well under 4 KB.",
+		},
+		{
+			title: "Deliver",
+			from: "push",
+			to: "ana",
+			carry: "cipher:push payload",
+			add: { ana: ["cipher:push payload"] },
+			text: "The phone is locked: the notification extension wakes up.",
+		},
+		{
+			title: "Open before showing it",
+			at: "ana",
+			call: 'openSealed(sealed, "notification", keyPair)',
+			text: "Swift (ports/swift) in the iOS extension, Kotlin (ports/kotlin) on Android, key_A from the shared keychain.",
+			add: { ana: ["plain:Ben added Dinner, 42.00"] },
+		},
+		{
+			title: "Passed off as a notification",
+			attack: true,
+			from: "push",
+			to: "ana",
+			carry: "cipher:a sealed bank movement",
+			refused: "wrong context",
+			text: "The context is bound, so a value sealed for another purpose can't show as a push. The app shows the fallback.",
+		},
+	],
+};

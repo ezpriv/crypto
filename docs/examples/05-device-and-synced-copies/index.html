@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>05 · Device and synced copies of key_A · ezpriv/crypto</title>
+	<meta name="description" content="After unlocking once, the user isn&#x27;t asked for the password again on that device, and often not on their next phone either.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/examples/05-device-and-synced-copies/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+	<script type="module" src="/assets/flow-player.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<div class="crumbs"><a href="/examples/">Examples</a> / 05</div>
+		<span class="eyebrow">Example 05</span>
+		<h1>Device and synced copies of <code>key_A</code></h1>
+		<p class="lead">After unlocking once, the user isn't asked for the password again on that device, and often not on their next phone either.</p>
+		<div class="links">
+			<a class="button" href="#in-practice">In practice</a>
+			<a class="button" href="#flow">Step-by-step flow</a>
+			<a class="button" href="#code">Code</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/blob/main/example/05-device-and-synced-copies/index.ts">View on GitHub</a>
+		</div>
+
+		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
+		<div class="prose">
+			<p><strong>What the user sees.</strong> After unlocking once, the user isn't asked for the password again on that device, and often not on their next phone either. Behind that, the app keeps <code>key_A</code> in the platform's secure storage, and, where the platform encrypts backups end to end, in a synced copy. <strong>The library isn't involved here:</strong> it made <code>key_A</code>, and keeping it is the platform's job. The example shows the decisions behind a small <code>KeyStore</code> interface with in-memory stand-ins.</p>
+			<p><strong>Why.</strong> Argon2id takes time and the password is annoying to type. And the iOS notification extension and the Android notification service need <code>key_A</code> to open pushes (<a href="/examples/10-push-notifications/">10</a>) while the app isn't running.</p>
+			
+		</div>
+		<div class="two-col">
+			<div class="pros"><h3>Pros</h3><ul><li>The password is needed once per device, or once per platform account with a synced copy.</li><li>The notification extension can open pushes while the phone is locked.</li><li>Each copy is protected by the platform: the iOS Keychain or the Android Keystore on the device, and the user's device passcode for the synced copies.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>Every copy is another place <code>key_A</code> can leak from.</strong> A synced copy is as safe as the user's Apple or Google account and its recovery.</li><li><strong>Google Block Store without end-to-end encryption</strong> would let Google read <code>key_A</code>. Check before storing, as the example does.</li><li><strong>The browser copy is readable by any script on the page.</strong> An XSS bug, a malicious extension, or a compromised script served by your own server can take it. The web app is only as trustworthy as the JavaScript the server sends.</li><li><strong>"After first unlock" is a trade-off:</strong> the key is readable while the phone is locked, so pushes can be opened. <code>WHEN_UNLOCKED</code> is stricter but breaks that.</li><li><strong>No forward secrecy.</strong> Whoever copies <code>key_A</code> once can open everything sealed to it, past and future (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li></ul></div>
+		</div>
+
+		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
+		<p class="lead">Each step shows who acts, which function runs, what travels and what every party holds afterwards. Use the controls, the step list or the arrow keys to replay any step.</p>
+		<section class="player" data-flow="./flow.js" aria-label="Animated flow of example 05">
+			<noscript>This animation needs JavaScript. The sequence diagram is in the <a href="https://github.com/ezpriv/crypto/tree/main/example/05-device-and-synced-copies#flow">example's README</a>.</noscript>
+		</section>
+
+		<h2 id="code"><span class="section-tag">3</span>Code</h2>
+		<div class="prose">
+			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/05-device-and-synced-copies/index.ts"><code>example/05-device-and-synced-copies/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
+			<pre><code class="language-ts">interface KeyStore {
+	get(userId: string): Promise&lt;Uint8Array | undefined&gt;;
+	set(userId: string, key: Uint8Array): Promise&lt;void&gt;;
+	delete(userId: string): Promise&lt;void&gt;;
+}</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Where</th><th>Real setting</th></tr></thead><tbody><tr><td>iOS and Android, this device</td><td><a href="https://docs.expo.dev/versions/latest/sdk/securestore/"><code>expo-secure-store</code></a> with <code>keychainAccessible: AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY</code>, readable while the phone is locked after its first unlock. On iOS, an <code>accessGroup</code> shared with the Notification Service Extension</td></tr><tr><td>iOS, synced</td><td>A second Keychain item with <code>kSecAttrSynchronizable</code> and <code>kSecAttrAccessibleAfterFirstUnlock</code>, through a small native module. iCloud Keychain is end-to-end encrypted</td></tr><tr><td>Android, synced</td><td><a href="https://developers.google.com/identity/blockstore/android">Google Block Store</a> with <code>setShouldBackupToCloud(true)</code>, only when <code>isEndToEndEncryptionAvailable()</code> is true. Otherwise skip it</td></tr><tr><td>Computer</td><td>IndexedDB for the app's origin, with a strict Content-Security-Policy, cleared on sign-out</td></tr></tbody></table></div>
+<p>No library function is used beyond <code>createUserKeys</code> to make a key to store (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#primitives">Primitives</a>).</p>
+			<h3>Run it</h3>
+			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
+pnpm install &amp;&amp; pnpm build
+node example/05-device-and-synced-copies/index.ts</code></pre>
+		</div>
+		<div class="links">
+			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/05-device-and-synced-copies/index.ts">Full example on GitHub</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/05-device-and-synced-copies">README with the sequence diagram</a>
+		</div>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/04-passkey-prf/">← 04 · Unlock with a passkey (PRF)</a><a class="button" href="/examples/06-group-rows/">06 · Group rows →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

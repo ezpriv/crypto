@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>API reference · ezpriv/crypto</title>
+	<meta name="description" content="Every function, type and constant @ezpriv/crypto exports, with what it does and what it throws.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/guide/api/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<span class="eyebrow">Guide</span>
+		<h1>API reference</h1>
+		<p class="lead">One entry point, <code>createCrypto(sodium)</code>, returns every function. Each takes and returns <code>Uint8Array</code>, and a function with more than three inputs takes one object.</p>
+		<ul class="toc"><li><a href="#createCrypto"><code>createCrypto</code></a></li><li><a href="#createUserKeys"><code>createUserKeys</code></a></li><li><a href="#newGroupKey"><code>newGroupKey</code></a></li><li><a href="#newSalt"><code>newSalt</code></a></li><li><a href="#passwordKeys"><code>passwordKeys</code></a></li><li><a href="#newRecoveryWords"><code>newRecoveryWords</code></a></li><li><a href="#keyFromWords"><code>keyFromWords</code></a></li><li><a href="#keyFromPrf"><code>keyFromPrf</code></a></li><li><a href="#wrapKey"><code>wrapKey</code></a></li><li><a href="#unwrapKey"><code>unwrapKey</code></a></li><li><a href="#encryptRow"><code>encryptRow</code></a></li><li><a href="#decryptRow"><code>decryptRow</code></a></li><li><a href="#sealGroupKey"><code>sealGroupKey</code></a></li><li><a href="#openGroupKey"><code>openGroupKey</code></a></li><li><a href="#sealForUser"><code>sealForUser</code></a></li><li><a href="#openSealed"><code>openSealed</code></a></li><li><a href="#newLinkRequest"><code>newLinkRequest</code></a></li><li><a href="#sealForLink"><code>sealForLink</code></a></li><li><a href="#openLink"><code>openLink</code></a></li><li><a href="#constants">Constants and types</a></li><li><a href="#errors">Errors</a></li></ul>
+		<div class="prose">
+		<section class="api-entry" id="createCrypto">
+			<h3>createCrypto</h3>
+			<pre class="sig"><code class="language-ts">createCrypto(sodium: Sodium): Crypto</code></pre>
+			<p>Returns every function below, bound to the libsodium you pass. Call it after <code>await sodium.ready</code>.</p>
+			
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#primitives">Spec</a></p>
+		</section>
+		<section class="api-entry" id="createUserKeys">
+			<h3>createUserKeys</h3>
+			<pre class="sig"><code class="language-ts">createUserKeys(): KeyPair</code></pre>
+			<p>A user's X25519 key pair (<code>crypto_box_keypair</code>). <code>privateKey</code> is <code>key_A</code>.</p>
+			
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#primitives">Spec</a></p>
+		</section>
+		<section class="api-entry" id="newGroupKey">
+			<h3>newGroupKey</h3>
+			<pre class="sig"><code class="language-ts">newGroupKey(): Uint8Array</code></pre>
+			<p>A random 32-byte key for one group's rows.</p>
+			
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#primitives">Spec</a></p>
+		</section>
+		<section class="api-entry" id="newSalt">
+			<h3>newSalt</h3>
+			<pre class="sig"><code class="language-ts">newSalt(): Uint8Array</code></pre>
+			<p>A random 16-byte salt for <code>passwordKeys</code>, stored next to the wrap.</p>
+			
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Spec</a></p>
+		</section>
+		<section class="api-entry" id="passwordKeys">
+			<h3>passwordKeys</h3>
+			<pre class="sig"><code class="language-ts">passwordKeys({ password, salt, params? }): { keyP, authKey }</code></pre>
+			<p>Argon2id over the NFC-normalized password, then two subkeys: <code>keyP</code> wraps <code>key_A</code>, <code>authKey</code> is sent at sign-in instead of the password. <code>params</code> defaults to <code>DEFAULT_PASSWORD_PARAMS</code>.</p>
+			<p><strong>Throws:</strong> <code>salt must be 16 bytes</code>, <code>password params must be integers</code>, <code>password params below the minimum</code> (under 2 passes or 19 MiB), <code>password params above the maximum</code> (over 16 passes or 256 MiB).</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Spec</a></p>
+		</section>
+		<section class="api-entry" id="newRecoveryWords">
+			<h3>newRecoveryWords</h3>
+			<pre class="sig"><code class="language-ts">newRecoveryWords(): string</code></pre>
+			<p>12 English BIP-39 words carrying 128 random bits. Show them once.</p>
+			
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Spec</a></p>
+		</section>
+		<section class="api-entry" id="keyFromWords">
+			<h3>keyFromWords</h3>
+			<pre class="sig"><code class="language-ts">keyFromWords(words: string): Uint8Array</code></pre>
+			<p><code>key_R</code> from the 12 words. Trims, lowercases and joins with single spaces first, so case and extra spaces don't matter.</p>
+			<p><strong>Throws:</strong> an unknown word, a bad checksum or the wrong number of words.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Spec</a></p>
+		</section>
+		<section class="api-entry" id="keyFromPrf">
+			<h3>keyFromPrf</h3>
+			<pre class="sig"><code class="language-ts">keyFromPrf(prf: Uint8Array): Uint8Array</code></pre>
+			<p><code>key_F</code> from a passkey's 32-byte PRF output.</p>
+			<p><strong>Throws:</strong> <code>prf must be 32 bytes</code>.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Spec</a></p>
+		</section>
+		<section class="api-entry" id="wrapKey">
+			<h3>wrapKey</h3>
+			<pre class="sig"><code class="language-ts">wrapKey({ key, wrappingKey, userId, kind }): Uint8Array</code></pre>
+			<p>Encrypts a key (usually <code>key_A</code>) under one way to unlock it. Bound to <code>userId</code> and <code>kind</code>. A 32-byte key gives a 73-byte wrap.</p>
+			<p><strong>Throws:</strong> <code>key must be 32 bytes</code> (the wrapping key).</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<section class="api-entry" id="unwrapKey">
+			<h3>unwrapKey</h3>
+			<pre class="sig"><code class="language-ts">unwrapKey({ wrapped, wrappingKey, userId, kind }): Uint8Array</code></pre>
+			<p>The inverse of <code>wrapKey</code>, with the same <code>userId</code> and <code>kind</code>.</p>
+			<p><strong>Throws:</strong> <code>cannot decrypt</code>, <code>unsupported version</code>, <code>ciphertext too short</code>.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<section class="api-entry" id="encryptRow">
+			<h3>encryptRow</h3>
+			<pre class="sig"><code class="language-ts">encryptRow({ value, groupKey, table, rowId }): Uint8Array</code></pre>
+			<p>Encrypts one row's bytes, bound to its table and id. Adds 41 bytes (version, nonce, tag).</p>
+			<p><strong>Throws:</strong> <code>key must be 32 bytes</code>.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<section class="api-entry" id="decryptRow">
+			<h3>decryptRow</h3>
+			<pre class="sig"><code class="language-ts">decryptRow({ encrypted, groupKey, table, rowId }): Uint8Array</code></pre>
+			<p>The inverse of <code>encryptRow</code>. A row moved to another table or id, or with any byte changed, is refused.</p>
+			<p><strong>Throws:</strong> <code>cannot decrypt</code>, <code>unsupported version</code>, <code>ciphertext too short</code>.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<section class="api-entry" id="sealGroupKey">
+			<h3>sealGroupKey</h3>
+			<pre class="sig"><code class="language-ts">sealGroupKey({ groupKey, groupId, publicKey }): Uint8Array</code></pre>
+			<p>Seals a group key to one member's public key, bound to the group id.</p>
+			<p><strong>Throws:</strong> <code>groupKey must be 32 bytes</code>, <code>publicKey must be 32 bytes</code>.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<section class="api-entry" id="openGroupKey">
+			<h3>openGroupKey</h3>
+			<pre class="sig"><code class="language-ts">openGroupKey({ sealed, groupId, keyPair }): Uint8Array</code></pre>
+			<p>Opens a sealed group key with the member's key pair.</p>
+			<p><strong>Throws:</strong> <code>cannot open</code>, <code>wrong context</code> (another group), <code>unsupported version</code>.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<section class="api-entry" id="sealForUser">
+			<h3>sealForUser</h3>
+			<pre class="sig"><code class="language-ts">sealForUser({ value, context, publicKey }): Uint8Array</code></pre>
+			<p>Seals a value to a user's public key: anyone (the server) can seal, only the user opens. <code>context</code> names what it is.</p>
+			<p><strong>Throws:</strong> <code>publicKey must be 32 bytes</code>.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<section class="api-entry" id="openSealed">
+			<h3>openSealed</h3>
+			<pre class="sig"><code class="language-ts">openSealed({ sealed, context, keyPair }): Uint8Array</code></pre>
+			<p>Opens a value sealed with <code>sealForUser</code> for the same context. Ported to Swift and Kotlin.</p>
+			<p><strong>Throws:</strong> <code>cannot open</code>, <code>wrong context</code>, <code>unsupported version</code>.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<section class="api-entry" id="newLinkRequest">
+			<h3>newLinkRequest</h3>
+			<pre class="sig"><code class="language-ts">newLinkRequest(): LinkRequest</code></pre>
+			<p>A one-time key pair and a 32-byte secret for a new browser. Its QR code carries <code>publicKey</code> and <code>secret</code>; the private key never leaves the browser.</p>
+			
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<section class="api-entry" id="sealForLink">
+			<h3>sealForLink</h3>
+			<pre class="sig"><code class="language-ts">sealForLink({ userKeys, channelId, userId, linkPublicKey, linkSecret }): Uint8Array</code></pre>
+			<p>On the phone: encrypts the user's key pair under the QR secret, then seals it to the browser's one-time public key. Ask the user to confirm first: whoever showed the QR code gets the private key.</p>
+			<p><strong>Throws:</strong> <code>privateKey must be 32 bytes</code>, <code>publicKey must be 32 bytes</code>, <code>key must be 32 bytes</code>.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<section class="api-entry" id="openLink">
+			<h3>openLink</h3>
+			<pre class="sig"><code class="language-ts">openLink({ sealed, channelId, userId, linkKeys }): KeyPair</code></pre>
+			<p>In the browser: opens the user's key pair. Compare the returned <code>publicKey</code> with the account's before using the keys.</p>
+			<p><strong>Throws:</strong> <code>cannot open</code>, <code>cannot decrypt</code>, <code>wrong context</code>, <code>linked keys don't match</code>.</p>
+			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Spec</a></p>
+		</section>
+		<h2 id="constants">Constants and types</h2>
+		<pre><code class="language-ts">import { createCrypto, frame, VERSION, DEFAULT_PASSWORD_PARAMS } from "@ezpriv/crypto";
+import type { Crypto, KeyPair, LinkRequest, PasswordParams, Sodium } from "@ezpriv/crypto";
+
+VERSION; // 1: first byte of every ciphertext and first field of every frame
+DEFAULT_PASSWORD_PARAMS; // { opsLimit: 3, memLimit: 64 * 1024 * 1024 }
+frame(["1", "ezpriv/row", "expense", "42"]); // "1:1,10:ezpriv/row,7:expense,2:42,"
+
+interface KeyPair { publicKey: Uint8Array; privateKey: Uint8Array }
+interface LinkRequest extends KeyPair { secret: Uint8Array }
+interface PasswordParams { opsLimit: number; memLimit: number /* bytes */ }</code></pre>
+		<p><code>Sodium</code> lists the libsodium functions the package calls, and nothing else. <code>libsodium-wrappers-sumo</code> and <code>react-native-libsodium</code> both satisfy it.</p>
+		<h2 id="errors">Errors</h2>
+		<p>Every error is a plain <code>Error</code> whose message starts with <code>ezpriv:</code>. libsodium's own errors are caught and replaced, so the messages are the same on every runtime. Two exceptions for now, whose messages don't start with <code>ezpriv:</code>: <code>keyFromWords</code> passes on the errors of <code>@scure/bip39</code>, which can quote the mistyped word, so keep them out of logs; and <code>sealGroupKey</code>, <code>sealForUser</code> and <code>sealForLink</code> pass on libsodium's own error for an invalid public key (such as 32 zero bytes).</p>
+		<div class="table-wrap"><table>
+			<thead><tr><th>Message</th><th>Means</th></tr></thead>
+			<tbody>
+				<tr><td><code>ezpriv: cannot decrypt</code></td><td>Wrong key, or the ciphertext was moved (other table, id, user or kind) or changed</td></tr>
+				<tr><td><code>ezpriv: cannot open</code></td><td>Sealed to another public key, or changed</td></tr>
+				<tr><td><code>ezpriv: wrong context</code></td><td>Opened with another group id, context, channel or user than it was sealed for</td></tr>
+				<tr><td><code>ezpriv: unsupported version</code></td><td>The first byte isn't <code>0x01</code></td></tr>
+				<tr><td><code>ezpriv: ciphertext too short</code></td><td>Truncated input</td></tr>
+				<tr><td><code>ezpriv: &lt;name&gt; must be &lt;n&gt; bytes</code></td><td>A key, salt or PRF output of the wrong length</td></tr>
+				<tr><td><code>ezpriv: password params …</code></td><td>Argon2id parameters that aren't integers, or are outside the floor and cap</td></tr>
+				<tr><td><code>ezpriv: linked keys don't match</code></td><td><code>openLink</code> got a private key that doesn't belong to the public key</td></tr>
+			</tbody>
+		</table></div>
+		</div>
+		<nav class="pager" aria-label="Guide"><a class="button" href="/guide/">← Getting started</a><a class="button" href="/guide/security/">Security and limits →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # @ezpriv/crypto
 
-End-to-end encryption for apps, built only on [libsodium](https://doc.libsodium.org). It gives an app the pieces to keep its users' data unreadable to its own server:
+End-to-end encryption for apps, built only on [libsodium](https://doc.libsodium.org). Docs and animated examples: **[ezpriv.xyz](https://ezpriv.xyz)**. It gives an app the pieces to keep its users' data unreadable to its own server:
 
 - a key pair per user, and several ways to unlock the private key: password, 12 recovery words, passkey (PRF), or another of the user's devices;
 - a key per group, sealed to each member;

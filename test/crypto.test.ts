@@ -397,7 +397,9 @@ describe("unlock keys", () => {
 			"legal winner thank year wave sausage worth useful legal winner thank",
 		],
 	])("recovery words with %s are refused", (_label, words) => {
-		expect(() => c.keyFromWords(words)).toThrow();
+		expect(() => c.keyFromWords(words)).toThrow(
+			/^ezpriv: invalid recovery words$/,
+		);
 	});
 
 	test("PRF output must be 32 bytes", () => {

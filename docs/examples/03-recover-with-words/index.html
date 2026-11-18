@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>03 · Recover with the 12 words · ezpriv/crypto</title>
+	<meta name="description" content="A user who forgot their password types the 12 recovery words, chooses a new password and is back in, with all their data.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/examples/03-recover-with-words/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+	<script type="module" src="/assets/flow-player.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<div class="crumbs"><a href="/examples/">Examples</a> / 03</div>
+		<span class="eyebrow">Example 03</span>
+		<h1>Recover with the 12 words</h1>
+		<p class="lead">A user who forgot their password types the 12 recovery words, chooses a new password and is back in, with all their data.</p>
+		<div class="links">
+			<a class="button" href="#in-practice">In practice</a>
+			<a class="button" href="#flow">Step-by-step flow</a>
+			<a class="button" href="#code">Code</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/blob/main/example/03-recover-with-words/index.ts">View on GitHub</a>
+		</div>
+
+		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
+		<div class="prose">
+			<p><strong>What the user sees.</strong> A user who forgot their password types the 12 recovery words, chooses a new password and is back in, with all their data. Behind that, the phone derives <code>key_R</code> from the words, unwraps the <code>recovery</code> wrap to get <code>key_A</code>, proves to the server that it holds <code>key_A</code>, and uploads a new <code>password</code> wrap with a new salt and <code>authKey</code>. No group key and no row is re-encrypted.</p>
+			<p><strong>Why.</strong> Passwords get forgotten. Without a second way in, a forgotten password would lose every group and row for good, since the server can't decrypt anything.</p>
+			
+		</div>
+		<div class="two-col">
+			<div class="pros"><h3>Pros</h3><ul><li>Changing the password re-wraps one 32-byte key. Groups, rows and sealed values stay untouched, however much data the user has.</li><li>The words carry 128 random bits, so the recovery wrap is safe to hand out by email: nobody can guess the words.</li><li>Case and extra spaces don't matter, and the BIP-39 checksum catches most mistyped words before any decryption.</li><li>The sealed challenge lets the server check the phone holds <code>key_A</code> without ever seeing it.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>The words are as good as the password.</strong> Whoever finds the paper gets <code>key_A</code>. Say so when showing them.</li><li><strong>Lost words and a lost password lose the data</strong>, unless another device or a passkey still unlocks it (<a href="/examples/04-passkey-prf/">04</a>, <a href="/examples/05-device-and-synced-copies/">05</a>).</li><li><strong>The challenge proves key possession, not identity.</strong> Anyone holding the words can reset the password. In a real app, also require a code sent to the account's email, and notify the user.</li><li><strong>Bad words only tell you the phrase is wrong,</strong> not which word. Show your own message ("check each word and their order"), and keep what the user typed out of logs and crash reports.</li><li><strong>The recovery wrap stays the same.</strong> If the words may have leaked, make new words and a new <code>recovery</code> wrap after recovering, as at sign-up (<a href="/examples/01-account-setup/">01</a>).</li></ul></div>
+		</div>
+
+		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
+		<p class="lead">Each step shows who acts, which function runs, what travels and what every party holds afterwards. Use the controls, the step list or the arrow keys to replay any step.</p>
+		<section class="player" data-flow="./flow.js" aria-label="Animated flow of example 03">
+			<noscript>This animation needs JavaScript. The sequence diagram is in the <a href="https://github.com/ezpriv/crypto/tree/main/example/03-recover-with-words#flow">example's README</a>.</noscript>
+		</section>
+
+		<h2 id="code"><span class="section-tag">3</span>Code</h2>
+		<div class="prose">
+			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/03-recover-with-words/index.ts"><code>example/03-recover-with-words/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
+			<pre><code class="language-ts">const keyR = ez.keyFromWords(&quot;  ABANDON   ability ... \n&quot;); // trimmed, lowercased, single spaces
+const privateKey = ez.unwrapKey({ wrapped: recoveryWrap, wrappingKey: keyR, userId, kind: &quot;recovery&quot; });
+
+const salt = ez.newSalt();
+const { keyP, authKey } = ez.passwordKeys({ password: newPassword, salt });
+const passwordWrap = ez.wrapKey({ key: privateKey, wrappingKey: keyP, userId, kind: &quot;password&quot; });</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>keyFromWords</code>, <code>newSalt</code>, <code>passwordKeys</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Derived keys</a></td></tr><tr><td><code>unwrapKey</code>, <code>wrapKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr><tr><td><code>sealForUser</code>, <code>openSealed</code> (for the challenge)</td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
+			<h3>Run it</h3>
+			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
+pnpm install &amp;&amp; pnpm build
+node example/03-recover-with-words/index.ts</code></pre>
+		</div>
+		<div class="links">
+			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/03-recover-with-words/index.ts">Full example on GitHub</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/03-recover-with-words">README with the sequence diagram</a>
+		</div>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/02-unlock-with-password/">← 02 · Unlock with a password</a><a class="button" href="/examples/04-passkey-prf/">04 · Unlock with a passkey (PRF) →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>
