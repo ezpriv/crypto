@@ -185,7 +185,7 @@ interface PasswordParams { opsLimit: number; memLimit: number /* bytes */ }</cod
 				<tr><td><code>ezpriv: wrong context</code></td><td>Opened with another group id, context, channel or user than it was sealed for</td></tr>
 				<tr><td><code>ezpriv: unsupported version</code></td><td>The first byte isn't <code>0x01</code></td></tr>
 				<tr><td><code>ezpriv: ciphertext too short</code></td><td>Truncated input</td></tr>
-				<tr><td><code>ezpriv: &lt;name&gt; must be &lt;n&gt; bytes</code></td><td>A key, salt or PRF output of the wrong length</td></tr>
+				<tr><td><code>ezpriv: &lt;name&gt; must be &lt;n&gt; bytes</code></td><td>A key, salt or PRF output of the wrong length, or a valid recovery phrase of more than 12 words</td></tr>
 				<tr><td><code>ezpriv: password params …</code></td><td>Argon2id parameters that aren't integers, or are outside the floor and cap</td></tr>
 				<tr><td><code>ezpriv: invalid public key</code></td><td>Sealing to a public key libsodium refuses, such as 32 zero bytes</td></tr>
 				<tr><td><code>ezpriv: cannot hash password</code></td><td>Argon2id failed, for example when it can't allocate its memory</td></tr>
