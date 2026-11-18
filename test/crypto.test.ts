@@ -406,6 +406,19 @@ describe("unlock keys", () => {
 		);
 	});
 
+	test("a failed Argon2id run throws an ezpriv error", () => {
+		const failing = createCrypto({
+			...sodium,
+			crypto_pwhash: () => {
+				throw new Error("out of memory");
+			},
+		});
+
+		expect(() =>
+			failing.passwordKeys({ password: "x", salt: c.newSalt(), params: FAST }),
+		).toThrow(/^ezpriv: cannot hash password$/);
+	});
+
 	test("libsodium's Argon2id id matches the hard-coded one", () => {
 		expect(sodium.crypto_pwhash_ALG_ARGON2ID13).toBe(2);
 	});

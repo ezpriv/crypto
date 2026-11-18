@@ -185,14 +185,20 @@ export function createCrypto(sodium: Sodium) {
 			if (opsLimit > MAX_OPS_LIMIT || memLimit > MAX_MEM_LIMIT) {
 				throw new Error("ezpriv: password params above the maximum");
 			}
-			const master = sodium.crypto_pwhash(
-				KEY_BYTES,
-				utf8(password.normalize("NFC")),
-				salt,
-				opsLimit,
-				memLimit,
-				ARGON2ID13,
-			);
+			let master: Uint8Array;
+			try {
+				master = sodium.crypto_pwhash(
+					KEY_BYTES,
+					utf8(password.normalize("NFC")),
+					salt,
+					opsLimit,
+					memLimit,
+					ARGON2ID13,
+				);
+			} catch {
+				// Argon2id fails when it can't allocate memLimit, with a message that differs by runtime.
+				throw new Error("ezpriv: cannot hash password");
+			}
 			return {
 				keyP: kdf(1, PASSWORD_CONTEXT, master),
 				authKey: kdf(2, PASSWORD_CONTEXT, master),
