@@ -196,11 +196,7 @@ class FlowPlayer {
 		this.speed = 1;
 		this.transient = [];
 		this.buildDom();
-		try {
-			this.buildScene();
-		} catch {
-			root.classList.add("no-webgl");
-		}
+		this.buildScene();
 		this.goTo(0, false);
 		this.bindControls();
 	}
@@ -261,7 +257,13 @@ class FlowPlayer {
 	}
 
 	buildScene() {
-		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+		try {
+			this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+		} catch {
+			// No WebGL here: the caption and step list still explain the flow.
+			this.root.classList.add("no-webgl");
+			return;
+		}
 		this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 		this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
 		this.stage.prepend(this.renderer.domElement);
