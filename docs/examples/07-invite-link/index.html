@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>07 · Invite link · ezpriv/crypto</title>
+	<meta name="description" content="A member shares a link to the group.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/examples/07-invite-link/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+	<script type="module" src="/assets/flow-player.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<div class="crumbs"><a href="/examples/">Examples</a> / 07</div>
+		<span class="eyebrow">Example 07</span>
+		<h1>Invite link</h1>
+		<p class="lead">A member shares a link to the group.</p>
+		<div class="links">
+			<a class="button" href="#in-practice">In practice</a>
+			<a class="button" href="#flow">Step-by-step flow</a>
+			<a class="button" href="#code">Code</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/blob/main/example/07-invite-link/index.ts">View on GitHub</a>
+		</div>
+
+		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
+		<div class="prose">
+			<p><strong>What the user sees.</strong> A member shares a link to the group. Whoever opens it joins and sees the expenses, without the creator having to approve each person. Behind that, the link is <code>https://app.example.com/invite/&lt;token&gt;#k=&lt;group key&gt;</code>. Browsers never send the part after <code>#</code> (the fragment) to the server, so the server sees the token, never the key. The joiner's app reads the key from the fragment, checks it opens the rows, and seals it to its own public key with <code>sealGroupKey</code>.</p>
+			<p><strong>Why.</strong> Sealing the key to a new member needs their public key, so an existing member would have to be online after they join. A link carries the key itself and works at once.</p>
+			
+		</div>
+		<div class="two-col">
+			<div class="pros"><h3>Pros</h3><ul><li>No member has to be online when someone joins.</li><li>The server, its logs and its proxies see the token, never the key. Someone with only the token can join the group on the server but can't read it.</li><li>The joiner checks the key opens the rows before keeping it, so a changed link is caught.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>The link is the key.</strong> Anyone who sees the full link (a chat app that isn't end-to-end encrypted, a screenshot, browser history and its sync) can read the group. Make tokens single-use or expiring, and rotate the key when it matters (<a href="/examples/08-member-removal/">08</a>).</li><li><strong>The web app reads the fragment with JavaScript the server serves.</strong> A malicious or compromised server could ship a page that sends the fragment home. This holds for every web version of an end-to-end encrypted app.</li><li><strong>Link previews:</strong> chat apps fetch the URL to build a preview. They don't send the fragment, but they store the whole message.</li><li><strong>An active server can read group data</strong> in other ways (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li></ul></div>
+		</div>
+
+		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
+		<p class="lead">Each step shows who acts, which function runs, what travels and what every party holds afterwards. Use the controls, the step list or the arrow keys to replay any step.</p>
+		<section class="player" data-flow="./flow.js" aria-label="Animated flow of example 07">
+			<noscript>This animation needs JavaScript. The sequence diagram is in the <a href="https://github.com/ezpriv/crypto/tree/main/example/07-invite-link#flow">example's README</a>.</noscript>
+		</section>
+
+		<h2 id="code"><span class="section-tag">3</span>Code</h2>
+		<div class="prose">
+			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/07-invite-link/index.ts"><code>example/07-invite-link/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
+			<pre><code class="language-ts">const link = `https://app.example.com/invite/${token}#k=${toB64url(groupKey)}`;
+
+// Carla&#x27;s app
+const url = new URL(link);
+const groupKey = fromB64url(new URLSearchParams(url.hash.slice(1)).get(&quot;k&quot;) ?? &quot;&quot;);
+const { groupId, rows } = join(url.pathname, &quot;carla&quot;); // the server only ever sees this path
+ez.decryptRow({ encrypted, groupKey, table: &quot;expense&quot;, rowId }); // refused if the key was changed
+const sealed = ez.sealGroupKey({ groupKey, groupId, publicKey: carla.publicKey });</code></pre>
+<p>The server's request log holds <code>GET /invite/&lt;token&gt;</code>, never the key.</p>
+<div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>encryptRow</code>, <code>decryptRow</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr><tr><td><code>sealGroupKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
+			<h3>Run it</h3>
+			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
+pnpm install &amp;&amp; pnpm build
+node example/07-invite-link/index.ts</code></pre>
+		</div>
+		<div class="links">
+			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/07-invite-link/index.ts">Full example on GitHub</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/07-invite-link">README with the sequence diagram</a>
+		</div>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/06-group-rows/">← 06 · Group rows</a><a class="button" href="/examples/08-member-removal/">08 · Removing a member →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

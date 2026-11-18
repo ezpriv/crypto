@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>02 · Unlock with a password · ezpriv/crypto</title>
+	<meta name="description" content="On a new phone, the user types the email and password they signed up with and sees their data.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/examples/02-unlock-with-password/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+	<script type="module" src="/assets/flow-player.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<div class="crumbs"><a href="/examples/">Examples</a> / 02</div>
+		<span class="eyebrow">Example 02</span>
+		<h1>Unlock with a password</h1>
+		<p class="lead">On a new phone, the user types the email and password they signed up with and sees their data.</p>
+		<div class="links">
+			<a class="button" href="#in-practice">In practice</a>
+			<a class="button" href="#flow">Step-by-step flow</a>
+			<a class="button" href="#code">Code</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/blob/main/example/02-unlock-with-password/index.ts">View on GitHub</a>
+		</div>
+
+		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
+		<div class="prose">
+			<p><strong>What the user sees.</strong> On a new phone, the user types the email and password they signed up with and sees their data. Behind that, the phone asks the server for the account's salt and Argon2id parameters, runs <code>passwordKeys</code>, signs in with <code>authKey</code> and gets the password wrap back, which only <code>keyP</code> opens. It then checks that the unwrapped <code>key_A</code> belongs to the account's public key.</p>
+			<p><strong>Why.</strong> The password has to unlock <code>key_A</code> on any device, but the server must not learn the password or anything that opens <code>key_A</code>. The server also shouldn't reveal who has an account, and shouldn't be able to make the phone derive weak keys.</p>
+			
+		</div>
+		<div class="two-col">
+			<div class="pros"><h3>Pros</h3><ul><li>The password never leaves the phone. The server sees <code>authKey</code>, which can't be turned into <code>keyP</code>.</li><li>An unknown email gets a salt that looks real and is the same on every request, so the prelogin answer doesn't reveal who signed up.</li><li>The library refuses Argon2id parameters under the floor (<code>opsLimit</code> 2, 19 MiB) and over the cap (<code>opsLimit</code> 16, 256 MiB), so a server can't make <code>authKey</code> cheap to crack or crash the phone.</li><li>The key check catches a wrap and a public key that don't belong together before the app uses them.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>The fake salt only hides accounts from the prelogin answer.</strong> Response times, sign-up ("email already taken") and password reset can still reveal them. The fake salt's key must stay secret and stable, or the same email gets different salts.</li><li><strong>Offline guessing</strong> of weak passwords stays possible for whoever holds the database (see <a href="/examples/01-account-setup/">01</a>).</li><li><strong>Rate-limit sign-in.</strong> Each online guess costs the attacker one Argon2id run, which they can run on fast hardware.</li><li><strong>An active server</strong> can still serve a different public key to other users (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>). The key check here only proves the pair the server sent this phone belongs together.</li></ul></div>
+		</div>
+
+		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
+		<p class="lead">Each step shows who acts, which function runs, what travels and what every party holds afterwards. Use the controls, the step list or the arrow keys to replay any step.</p>
+		<section class="player" data-flow="./flow.js" aria-label="Animated flow of example 02">
+			<noscript>This animation needs JavaScript. The sequence diagram is in the <a href="https://github.com/ezpriv/crypto/tree/main/example/02-unlock-with-password#flow">example's README</a>.</noscript>
+		</section>
+
+		<h2 id="code"><span class="section-tag">3</span>Code</h2>
+		<div class="prose">
+			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/02-unlock-with-password/index.ts"><code>example/02-unlock-with-password/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
+			<pre><code class="language-ts">const { salt, params } = preLogin(email); // server: a fake, stable salt for unknown emails
+const { keyP, authKey } = ez.passwordKeys({ password, salt, params });
+const account = signIn(email, authKey); // server: compares SHA-256(authKey)
+const privateKey = ez.unwrapKey({ wrapped: account.passwordWrap, wrappingKey: keyP, userId: account.userId, kind: &quot;password&quot; });
+
+// Only a matching pair opens what was sealed to the public key.
+const sealed = ez.sealForUser({ value: new Uint8Array(), context: &quot;key-check&quot;, publicKey: account.publicKey });
+ez.openSealed({ sealed, context: &quot;key-check&quot;, keyPair: { publicKey: account.publicKey, privateKey } });</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>passwordKeys</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Derived keys</a></td></tr><tr><td><code>unwrapKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr><tr><td><code>sealForUser</code>, <code>openSealed</code> (for the key check)</td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
+			<h3>Run it</h3>
+			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
+pnpm install &amp;&amp; pnpm build
+node example/02-unlock-with-password/index.ts</code></pre>
+		</div>
+		<div class="links">
+			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/02-unlock-with-password/index.ts">Full example on GitHub</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/02-unlock-with-password">README with the sequence diagram</a>
+		</div>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/01-account-setup/">← 01 · Account setup</a><a class="button" href="/examples/03-recover-with-words/">03 · Recover with the 12 words →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

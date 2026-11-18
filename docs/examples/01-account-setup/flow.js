@@ -1,0 +1,80 @@
+export default {
+	actors: [
+		{ id: "phone", name: "Phone", kind: "phone", note: "Ana signs up" },
+		{ id: "server", name: "Server", kind: "server", note: "API and database" },
+	],
+	steps: [
+		{
+			title: "Type an email and a password",
+			at: "phone",
+			text: "Ana types her email and a password. The password never leaves this phone.",
+			add: { phone: ["secret:password"] },
+		},
+		{
+			title: "Make the key pair",
+			at: "phone",
+			call: "ez.createUserKeys()",
+			text: "An X25519 key pair. The private key, key_A, is what every other step protects.",
+			add: { phone: ["secret:key_A", "public:publicKey"] },
+		},
+		{
+			title: "Derive keyP and authKey",
+			at: "phone",
+			call: "ez.passwordKeys({ password, salt: ez.newSalt() })",
+			text: "Argon2id over the password and a random salt, then two subkeys: keyP wraps key_A, authKey signs in.",
+			add: { phone: ["public:salt", "secret:keyP", "secret:authKey"] },
+		},
+		{
+			title: "Wrap key_A under the password",
+			at: "phone",
+			call: 'ez.wrapKey({ key: key_A, wrappingKey: keyP, userId, kind: "password" })',
+			text: "key_A encrypted under keyP, bound to the user id and to the kind of unlock.",
+			add: { phone: ["cipher:password wrap"] },
+		},
+		{
+			title: "Show 12 recovery words",
+			at: "phone",
+			call: "ez.newRecoveryWords()",
+			text: "Shown once for Ana to write down. They're never sent, stored or logged.",
+			add: { phone: ["secret:12 words"] },
+		},
+		{
+			title: "Wrap key_A under the words",
+			at: "phone",
+			call: 'ez.wrapKey({ key: key_A, wrappingKey: ez.keyFromWords(words), userId, kind: "recovery" })',
+			text: "A second, independent way in, for when the password is forgotten.",
+			add: { phone: ["cipher:recovery wrap"] },
+		},
+		{
+			title: "Sign up",
+			from: "phone",
+			to: "server",
+			carry: "public:publicKey · salt · wraps · authKey",
+			call: "POST /signup",
+			text: "The public key, the salt, the Argon2id parameters, both wraps and authKey. No password, no words, no key_A.",
+			add: {
+				server: [
+					"public:publicKey",
+					"public:salt",
+					"cipher:password wrap",
+					"cipher:recovery wrap",
+					"secret:authKey",
+				],
+			},
+		},
+		{
+			title: "Keep only a hash of authKey",
+			at: "server",
+			call: "sha256(authKey)",
+			text: "A leaked database can't be replayed to sign in. authKey is high-entropy, so a fast hash is enough.",
+			drop: { server: ["authKey"] },
+			add: { server: ["public:authKey hash"] },
+		},
+		{
+			title: "Forget what isn't needed",
+			at: "phone",
+			text: "The phone keeps key_A in its keychain (example 05). The server can restore the account but can't open anything.",
+			drop: { phone: ["password", "keyP", "authKey", "12 words"] },
+		},
+	],
+};

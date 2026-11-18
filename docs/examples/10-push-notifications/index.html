@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>10 · Push notifications · ezpriv/crypto</title>
+	<meta name="description" content="When Ben adds an expense, Ana and Carla get a push that reads &quot;Ben added Dinner, 42.00&quot;, while the server, Apple and Google only ever see &quot;New activity&quot;.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/examples/10-push-notifications/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+	<script type="module" src="/assets/flow-player.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<div class="crumbs"><a href="/examples/">Examples</a> / 10</div>
+		<span class="eyebrow">Example 10</span>
+		<h1>Push notifications</h1>
+		<p class="lead">When Ben adds an expense, Ana and Carla get a push that reads "Ben added Dinner, 42.00", while the server, Apple and Google only ever see "New activity".</p>
+		<div class="links">
+			<a class="button" href="#in-practice">In practice</a>
+			<a class="button" href="#flow">Step-by-step flow</a>
+			<a class="button" href="#code">Code</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/blob/main/example/10-push-notifications/index.ts">View on GitHub</a>
+		</div>
+
+		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
+		<div class="prose">
+			<p><strong>What the user sees.</strong> When Ben adds an expense, Ana and Carla get a push that reads "Ben added Dinner, 42.00", while the server, Apple and Google only ever see "New activity". Behind that, Ben's app seals the text once per recipient with <code>sealForUser</code> (context <code>notification</code>). The push carries a generic fallback text plus the sealed bytes. The recipient's phone opens them with <code>openSealed</code> before showing the notification.</p>
+			<p><strong>Why.</strong> A notification's text is often the most sensitive part: who paid what, and where. Without sealing, it would pass in the clear through the server, APNs and FCM.</p>
+			
+		</div>
+		<div class="two-col">
+			<div class="pros"><h3>Pros</h3><ul><li>The text exists in the clear only on the sender's and the recipient's phones.</li><li>The fallback text means a push still makes sense when it can't be opened (signed out, no key on this device yet).</li><li>Sealing adds 84 bytes before base64 (version byte, 48 bytes of box, the context header), well under APNs' and FCM's 4 KB.</li><li>The context is bound: a sealed bank movement (<a href="/examples/09-sealed-ingest/">09</a>) can't be shown as a notification.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>Sealed boxes are anonymous.</strong> The recipient can't tell who sealed a notification, so anyone with the public key could push a fake one (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>). Keep notifications informative only, and show the real data from the group's rows.</li><li><strong>The sender seals once per recipient,</strong> using public keys from the server. An active server can hand out its own key in place of a member's (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li><li><strong>Metadata is visible:</strong> who notifies whom, when, and the payload size. Pad the text to a few fixed sizes if that matters.</li><li><strong>iOS needs <code>mutable-content</code></strong> and a Notification Service Extension. Its key must be readable while the phone is locked, which is a trade-off (<a href="/examples/05-device-and-synced-copies/">05</a>).</li></ul></div>
+		</div>
+
+		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
+		<p class="lead">Each step shows who acts, which function runs, what travels and what every party holds afterwards. Use the controls, the step list or the arrow keys to replay any step.</p>
+		<section class="player" data-flow="./flow.js" aria-label="Animated flow of example 10">
+			<noscript>This animation needs JavaScript. The sequence diagram is in the <a href="https://github.com/ezpriv/crypto/tree/main/example/10-push-notifications#flow">example's README</a>.</noscript>
+		</section>
+
+		<h2 id="code"><span class="section-tag">3</span>Code</h2>
+		<div class="prose">
+			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/10-push-notifications/index.ts"><code>example/10-push-notifications/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
+			<pre><code class="language-ts">// Ben&#x27;s phone, per recipient
+const sealed = ez.sealForUser({ value: text(JSON.stringify(message)), context: &quot;notification&quot;, publicKey });
+const payload = { aps: { alert: fallback, &quot;mutable-content&quot;: 1 }, ezpriv: toB64url(sealed) };
+
+// the recipient&#x27;s phone
+const message = JSON.parse(read(ez.openSealed({ sealed: fromB64url(payload.ezpriv), context: &quot;notification&quot;, keyPair })));</code></pre>
+<p>The notification code can't run JavaScript, so it uses the ports, tested against the same vectors:</p>
+<ul><li><strong>iOS:</strong> a Notification Service Extension calling <code>openSealed</code> from <a href="https://github.com/ezpriv/crypto/tree/main/ports/swift"><code>ports/swift</code></a>, with <code>key_A</code> from a keychain access group shared with the app (<a href="/examples/05-device-and-synced-copies/">05</a>).</li><li><strong>Android:</strong> a <code>FirebaseMessagingService</code> calling <code>openSealed</code> from <a href="https://github.com/ezpriv/crypto/tree/main/ports/kotlin"><code>ports/kotlin</code></a>, which isn't tested yet.</li></ul>
+<div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>sealForUser</code>, <code>openSealed</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
+			<h3>Run it</h3>
+			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
+pnpm install &amp;&amp; pnpm build
+node example/10-push-notifications/index.ts</code></pre>
+		</div>
+		<div class="links">
+			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/10-push-notifications/index.ts">Full example on GitHub</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/10-push-notifications">README with the sequence diagram</a>
+		</div>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/09-sealed-ingest/">← 09 · Sealed ingest</a><a class="button" href="/examples/11-qr-sign-in/">11 · Sign in on a computer by QR code →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

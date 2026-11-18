@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>13 · Migrating existing plain rows · ezpriv/crypto</title>
+	<meta name="description" content="An app that already has groups with plain data ships end-to-end encryption, and existing groups switch over without losing a row.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/examples/13-migration/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+	<script type="module" src="/assets/flow-player.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<div class="crumbs"><a href="/examples/">Examples</a> / 13</div>
+		<span class="eyebrow">Example 13</span>
+		<h1>Migrating existing plain rows</h1>
+		<p class="lead">An app that already has groups with plain data ships end-to-end encryption, and existing groups switch over without losing a row.</p>
+		<div class="links">
+			<a class="button" href="#in-practice">In practice</a>
+			<a class="button" href="#flow">Step-by-step flow</a>
+			<a class="button" href="#code">Code</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/blob/main/example/13-migration/index.ts">View on GitHub</a>
+		</div>
+
+		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
+		<div class="prose">
+			<p><strong>What the user sees.</strong> An app that already has groups with plain data ships end-to-end encryption, and existing groups switch over without losing a row. Behind that, the first member to update makes the group key, encrypts every plain row and uploads them all. The server checks that every plain row has an encrypted counterpart (same ids, same count) and only then writes them and clears the plain copies, all at once. Members who update later get their sealed copy of the key from another member's app, since the server can't make one.</p>
+			<p><strong>Why.</strong> The server can't encrypt for the group: it must not hold the key. So a client has to do it, and the switch must never leave a group with some rows missing or half encrypted.</p>
+			
+		</div>
+		<div class="two-col">
+			<div class="pros"><h3>Pros</h3><ul><li>No group is ever half migrated: either every row is encrypted, or nothing changed.</li><li>A row added during the migration makes the upload fail instead of being lost. The app encrypts again.</li><li>Members migrate at their own pace. Whoever updates later gets the key from any member who has it.</li><li>Row ids stay the same, so links, claims and references keep working.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>The server can't check the content.</strong> It checks ids and counts, not that each ciphertext holds the right row. A buggy client could upload garbage, and once the plain copies are cleared, nobody can fix it. Have the app decrypt its own upload before sending it.</li><li><strong>Old backups still hold the plain rows</strong> until they expire. Say so to users, and shorten backup retention for those tables.</li><li><strong>A member on an old app version</strong> can't read the group after the switch. Ask them to update.</li><li><strong>Until another member's app is online,</strong> a member who updated later can't read the group.</li><li><strong>An active server</strong> could claim a fake member needs the key and receive it (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>). Show members who is getting the key.</li></ul></div>
+		</div>
+
+		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
+		<p class="lead">Each step shows who acts, which function runs, what travels and what every party holds afterwards. Use the controls, the step list or the arrow keys to replay any step.</p>
+		<section class="player" data-flow="./flow.js" aria-label="Animated flow of example 13">
+			<noscript>This animation needs JavaScript. The sequence diagram is in the <a href="https://github.com/ezpriv/crypto/tree/main/example/13-migration#flow">example's README</a>.</noscript>
+		</section>
+
+		<h2 id="code"><span class="section-tag">3</span>Code</h2>
+		<div class="prose">
+			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/13-migration/index.ts"><code>example/13-migration/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
+			<pre><code class="language-ts">// Ana&#x27;s app
+const rows = new Map(plainRows.map(([rowId, fields]) =&gt;
+	[rowId, ez.encryptRow({ value: text(JSON.stringify(fields)), groupKey, table: &quot;expense&quot;, rowId })]));
+
+// server: refuse unless every plain row has an encrypted counterpart
+if (ids.length !== rows.size || ids.some((id) =&gt; !rows.has(id))) throw new Error(&quot;rows changed, encrypt again&quot;);
+
+// later, any member&#x27;s app with the key
+ez.sealGroupKey({ groupKey, groupId, publicKey: bensPublicKey });</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>createUserKeys</code>, <code>newGroupKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#primitives">Primitives</a></td></tr><tr><td><code>encryptRow</code>, <code>decryptRow</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr><tr><td><code>sealGroupKey</code>, <code>openGroupKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
+			<h3>Run it</h3>
+			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
+pnpm install &amp;&amp; pnpm build
+node example/13-migration/index.ts</code></pre>
+		</div>
+		<div class="links">
+			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/13-migration/index.ts">Full example on GitHub</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/13-migration">README with the sequence diagram</a>
+		</div>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/12-live-table-link/">← 12 · Live receipt table by link</a><a class="button" href="/examples/">All examples →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

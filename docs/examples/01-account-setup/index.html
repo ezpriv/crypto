@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>01 · Account setup · ezpriv/crypto</title>
+	<meta name="description" content="The user signs up with an email and a password, and writes down 12 recovery words shown once.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/examples/01-account-setup/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+	<script type="module" src="/assets/flow-player.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<div class="crumbs"><a href="/examples/">Examples</a> / 01</div>
+		<span class="eyebrow">Example 01</span>
+		<h1>Account setup</h1>
+		<p class="lead">The user signs up with an email and a password, and writes down 12 recovery words shown once.</p>
+		<div class="links">
+			<a class="button" href="#in-practice">In practice</a>
+			<a class="button" href="#flow">Step-by-step flow</a>
+			<a class="button" href="#code">Code</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/blob/main/example/01-account-setup/index.ts">View on GitHub</a>
+		</div>
+
+		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
+		<div class="prose">
+			<p><strong>What the user sees.</strong> The user signs up with an email and a password, and writes down 12 recovery words shown once. Behind that, the phone makes the user's key pair, derives two keys from the password with Argon2id, and encrypts the private key (<code>key_A</code>) twice: under the password and under the words. The server receives the public key, the salt, the Argon2id parameters, both wraps and <code>authKey</code>, and keeps only a hash of <code>authKey</code>.</p>
+			<p><strong>Why.</strong> Every other example depends on <code>key_A</code>. The server has to store it, so that the user gets it back on a new phone, without being able to read it. The password never leaves the phone: with it, the server could derive <code>keyP</code> and unwrap <code>key_A</code>.</p>
+			
+		</div>
+		<div class="two-col">
+			<div class="pros"><h3>Pros</h3><ul><li>The server holds everything needed to restore the account on a new phone, and none of it opens <code>key_A</code>.</li><li>Two independent ways in: a forgotten password doesn't lose the data (see <a href="/examples/03-recover-with-words/">03</a>).</li><li><code>keyP</code> and <code>authKey</code> are separate subkeys of one Argon2id run, so the <code>authKey</code> the server sees at sign-in doesn't give <code>keyP</code>.</li><li>Each wrap is bound to the user id and its kind, so the server can't pass one user's wrap off as another's, or the recovery wrap as the password one.</li><li>The server stores a hash of <code>authKey</code>, so a leaked database can't be replayed to sign in.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>Offline guessing.</strong> Whoever holds the salt, the parameters and the password wrap (the server, or anyone who breaches it) can try passwords offline. Argon2id makes each guess slow, not impossible: require long passwords.</li><li><strong>Losing every way in loses the data.</strong> If the user forgets the password, loses the words and has no unlocked device or passkey, nobody can open <code>key_A</code>, the server included. Ask the user to type back a few of the words before finishing sign-up.</li><li><strong>Argon2id costs the phone time and memory:</strong> 64 MiB and 3 passes by default. The parameters are stored with the salt, so they can be raised later by re-wrapping at the next sign-in.</li><li><strong>The public key isn't authenticated.</strong> An active server could hand other users a key of its own in place of this one (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li><li><strong>JavaScript can't wipe memory:</strong> the password, the words and <code>key_A</code> stay in memory until garbage collection.</li></ul></div>
+		</div>
+
+		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
+		<p class="lead">Each step shows who acts, which function runs, what travels and what every party holds afterwards. Use the controls, the step list or the arrow keys to replay any step.</p>
+		<section class="player" data-flow="./flow.js" aria-label="Animated flow of example 01">
+			<noscript>This animation needs JavaScript. The sequence diagram is in the <a href="https://github.com/ezpriv/crypto/tree/main/example/01-account-setup#flow">example's README</a>.</noscript>
+		</section>
+
+		<h2 id="code"><span class="section-tag">3</span>Code</h2>
+		<div class="prose">
+			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/01-account-setup/index.ts"><code>example/01-account-setup/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
+			<pre><code class="language-ts">const user = ez.createUserKeys(); // user.privateKey is key_A
+const salt = ez.newSalt();
+const { keyP, authKey } = ez.passwordKeys({ password, salt, params: DEFAULT_PASSWORD_PARAMS });
+const passwordWrap = ez.wrapKey({ key: user.privateKey, wrappingKey: keyP, userId, kind: &quot;password&quot; });
+
+const words = ez.newRecoveryWords(); // shown once, never sent or stored
+const recoveryWrap = ez.wrapKey({ key: user.privateKey, wrappingKey: ez.keyFromWords(words), userId, kind: &quot;recovery&quot; });</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>createUserKeys</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#primitives">Primitives</a></td></tr><tr><td><code>newSalt</code>, <code>passwordKeys</code>, <code>DEFAULT_PASSWORD_PARAMS</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Derived keys</a></td></tr><tr><td><code>newRecoveryWords</code>, <code>keyFromWords</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Derived keys</a></td></tr><tr><td><code>wrapKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
+			<h3>Run it</h3>
+			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
+pnpm install &amp;&amp; pnpm build
+node example/01-account-setup/index.ts</code></pre>
+		</div>
+		<div class="links">
+			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/01-account-setup/index.ts">Full example on GitHub</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/01-account-setup">README with the sequence diagram</a>
+		</div>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/">← All examples</a><a class="button" href="/examples/02-unlock-with-password/">02 · Unlock with a password →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>
