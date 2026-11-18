@@ -1,0 +1,102 @@
+example/10-push-notifications/README.md
+  s_928b16fe3be95c::t_0e6399eb3bdfe2 1-69
+example/09-sealed-ingest/index.ts
+  s_928b16fe3be95c::t_e856d1a51bf14b 1-24,31-36,41-46,50-60,63-66,73-75
+  s_928b16fe3be95c::t_331e0c79bc9030 25
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 26-30,37-40,47-49,61-62,67-72
+example/10-push-notifications/index.ts
+  s_928b16fe3be95c::t_7116da28ebc867 15,41,43,47,68
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 3-11,17-23,37-40,54-57,61-63,82-87
+  s_928b16fe3be95c::t_2d22a0939809f8 1-2,12-14,16,24-36,42,44-46,48-53,58-60,64-67,69-81,88-90
+example/13-migration/index.ts
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 32-38,51-55,61-64,98-101,110
+  s_928b16fe3be95c::t_a3f39223656a19 1-9,12-13,15,17-31,39-40,42,44-50,56-60,65,67-90,96-97,102-104,106,113-122
+  s_928b16fe3be95c::t_19a4c8aafc371c 10-11,14,16,41,43,66,91-95,105,107-109,111-112
+example/04-passkey-prf/index.ts
+  s_928b16fe3be95c::t_4b13b50476bf93 44-47,76-80,83
+  s_928b16fe3be95c::t_9a4a54813c5bcb 1-2,11-43,48-75,81-82,84-87,92-105
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 3-10,88-91
+example/03-recover-with-words/README.md
+  s_928b16fe3be95c::t_b94415e3ff59f1 1-57,59-65
+  s_928b16fe3be95c::t_594ec19cf3cab4 58
+example/12-live-table-link/README.md
+  s_928b16fe3be95c::t_1ca4d2e918a037 1-63
+example/11-qr-sign-in/index.ts
+  s_928b16fe3be95c::t_55cccf73ce4d4c 46-47,49-50,59-62,66-70,92,94,100-101,103-111,113,117,119
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 4-12
+  s_928b16fe3be95c::t_d89dcf58fa0306 1-3,13-45,48,51-58,63-65,71-91,93,95,98-99,102,112,114-116,118,120-122
+  s_928b16fe3be95c::t_526a546592ec29 96-97
+example/01-account-setup/index.ts
+  s_928b16fe3be95c::t_fe1f195e2d6238 54,57,76,78-79,96
+  s_928b16fe3be95c::t_ea3b2d6d1857e4 1-53,55-56,58-75,77,80-95,97-102
+example/04-passkey-prf/README.md
+  s_928b16fe3be95c::t_850cb3cc0b27e5 1-68
+example/06-group-rows/README.md
+  s_928b16fe3be95c::t_6fe853607c1f58 1-65
+example/07-invite-link/README.md
+  s_928b16fe3be95c::t_8ad56b4c60c368 1-34,36-65
+  s_928b16fe3be95c::t_880f7118b50e54 35
+example/02-unlock-with-password/README.md
+  s_928b16fe3be95c::t_8621fcdd20ba07 1-68
+example/07-invite-link/index.ts
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 28-33,55-57,69-73,86-89
+  s_928b16fe3be95c::t_0016e9e7d17408 1-27,34-54,58-68,74-85,90
+example/01-account-setup/README.md
+  s_928b16fe3be95c::t_db8d8f559352e6 1-65
+example/06-group-rows/index.ts
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 33-36,59-61
+  s_928b16fe3be95c::t_abebfd0461f6d7 1-32,37-58,62-90
+example/08-member-removal/README.md
+  s_928b16fe3be95c::t_aa46f31c397aa0 1-66
+example/12-live-table-link/index.ts
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 3-13,21-23,36-41,54-61,85-88
+  s_928b16fe3be95c::t_85909cf23a4dde 1-2,14-20,24-35,42-53,62-84,89-100
+example/13-migration/README.md
+  s_928b16fe3be95c::t_bbc8fb2a72f1dd 1-71
+example/09-sealed-ingest/README.md
+  s_928b16fe3be95c::t_490e8275434c1b 1-57
+example/_shared/setup.ts
+  s_928b16fe3be95c::t_3641233f24b36b 1-23,26,32-33,35-55
+  s_928b16fe3be95c::t_2a7139c5bbf71a 24-25,27-31,34
+example/README.md
+  s_928b16fe3be95c::t_1677739e4cf6cb 1-46
+README.md
+  s_928b16fe3be95c::t_d978edb16521ca 58-59
+example/02-unlock-with-password/index.ts
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 22-23,82-86
+  s_928b16fe3be95c::t_4cdcc983757536 81
+  s_928b16fe3be95c::t_64c9ff2341e897 1-21,24-80,87-118
+example/05-device-and-synced-copies/index.ts
+  s_928b16fe3be95c::t_ed6998e17b35a8 1-45,51-61,67-82,91-92,96-102
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 46-50,62-66,83-90,93-95
+example/03-recover-with-words/index.ts
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 4-12,16-20,80-83,91-101,103-106
+  s_928b16fe3be95c::t_2618826d64bd9d 1-3,13-15,21-25,29-34,40-79,84-90,102,107-124
+  s_928b16fe3be95c::t_75dec9bd74ed5c 26-28,35-39
+example/05-device-and-synced-copies/README.md
+  s_928b16fe3be95c::t_5168b44caf657d 1-49,51-65
+  s_928b16fe3be95c::t_06b456368c69ea 50
+example/08-member-removal/index.ts
+  s_928b16fe3be95c::t_a33cc5e1bfa48c 30-41,74-76
+  s_928b16fe3be95c::t_c7bc208da61a2d 1-15,17-20,22,24,26-29,42-48,50-51,54-59,61-64,66-71,77-87,101-106,108-112
+  s_928b16fe3be95c::t_14eff4952beed0 49,52-53
+  s_928b16fe3be95c::t_91d1d3f17e47ac 16,21,23,25,60,65,72-73,88-100,107
+example/11-qr-sign-in/README.md
+  s_928b16fe3be95c::t_26c10cc424645f 1-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8256a5b1ceb14f5e63f32ad6ec18e7bfa37b6a07",
+  "prompts": {},
+  "sessions": {
+    "s_928b16fe3be95c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2bac7ae3-5cc1-46fb-9ed2-4968abe139c1",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "mvargas33 <mvargas.uchile@gmail.com>"
+    }
+  }
+}
