@@ -55,6 +55,8 @@ const sealed = ez.sealForUser({ value: bytes, context: "notification", publicKey
 
 Every function takes and returns `Uint8Array`. Encoding (base64, JSON) is up to the app.
 
+[`example/`](example) has a runnable example for each use case (sign-up, unlock, recovery, passkeys, groups, invites, push notifications, QR sign-in and more), each with a README on its flow, pros and limits.
+
 ## Other languages
 
 The iOS Notification Service Extension and the Android notification service can't run JavaScript, so `ports/` has a small `openSealed` for each:

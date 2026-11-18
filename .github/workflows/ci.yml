@@ -55,9 +55,11 @@ jobs:
       - *pnpm
       - *node
       - *install
+      # The examples import the package by name, which resolves to dist/.
+      - run: pnpm build
       - run: pnpm check-types
       - run: pnpm test
-      - run: pnpm build
+      - run: pnpm examples
 
   swift:
     runs-on: macos-latest
