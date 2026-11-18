@@ -1,0 +1,170 @@
+docs/examples/06-group-rows/flow.js
+  s_928b16fe3be95c::t_4e59ece251eddb 71-73
+  s_928b16fe3be95c::t_ea5d0aeb4814c7 1-70,74-95
+docs/_headers
+  s_928b16fe3be95c::t_26b4413b552327 1-10
+docs/examples/07-invite-link/index.html
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-88
+docs/assets/site.js
+  s_928b16fe3be95c::t_c9a52de24371e9 52,56-57
+  s_928b16fe3be95c::t_a5264c757d833d 1,7-17,19-28,30-31,33-51
+  s_928b16fe3be95c::t_abb162a4004ac2 2,18,29,32
+  s_928b16fe3be95c::t_4e59ece251eddb 3-6,53-55
+docs/examples/02-unlock-with-password/flow.js
+  s_928b16fe3be95c::t_b4e1807fbb8d56 1-85
+docs/README.md
+  s_928b16fe3be95c::t_b0a3f8c709a3ba 1-98
+docs/examples/08-member-removal/index.html
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-87
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+docs/examples/13-migration/flow.js
+  s_928b16fe3be95c::t_f79ff007b5e3a1 1-102
+docs/examples/10-push-notifications/index.html
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-87
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+docs/assets/README.md
+  s_928b16fe3be95c::t_daa7ecef4185fb 1-10
+docs/examples/13-migration/index.html
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-88
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+docs/examples/03-recover-with-words/flow.js
+  s_928b16fe3be95c::t_e2341dc88e547c 1-92
+docs/examples/03-recover-with-words/index.html
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-85
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+docs/favicon.svg
+  s_928b16fe3be95c::t_abb162a4004ac2 1
+docs/index.html
+  s_928b16fe3be95c::t_76cc7f63603aca 1-67
+docs/examples/12-live-table-link/flow.js
+  s_928b16fe3be95c::t_4e59ece251eddb 3-8,59-61
+  s_928b16fe3be95c::t_87893db75c76cf 1-2,9-58,62-95
+docs/examples/09-sealed-ingest/flow.js
+  s_928b16fe3be95c::t_2d5e0e4fd9c6f2 1-70
+docs/examples/05-device-and-synced-copies/index.html
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-85
+docs/examples/12-live-table-link/index.html
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-85
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+docs/examples/11-qr-sign-in/index.html
+  s_928b16fe3be95c::t_f0e00266121733 54,56
+  s_928b16fe3be95c::t_abb162a4004ac2 1-53,55,57-92
+docs/examples/07-invite-link/flow.js
+  s_928b16fe3be95c::t_4e59ece251eddb 4-9,14-19
+  s_928b16fe3be95c::t_abb162a4004ac2 48
+  s_928b16fe3be95c::t_952ea9a24bf90b 1-3,10-13,20-47,49-102
+docs/examples/02-unlock-with-password/index.html
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-87
+docs/examples/04-passkey-prf/flow.js
+  s_928b16fe3be95c::t_4e59ece251eddb 20-24,55
+  s_928b16fe3be95c::t_59cc280239ac2f 1-19,25-54,56-106
+docs/examples/01-account-setup/index.html
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-86
+docs/examples/01-account-setup/flow.js
+  s_928b16fe3be95c::t_97ba75c0f2b504 1-80
+docs/examples/10-push-notifications/flow.js
+  s_928b16fe3be95c::t_6d9476785481cc 1-73
+docs/assets/site.css
+  s_928b16fe3be95c::t_c20809da911265 573,592,600
+  s_928b16fe3be95c::t_4e59ece251eddb 20-24,61,341-343,528,586,593-595,651,815
+  s_928b16fe3be95c::t_a036c76f6563d8 1-19,25-60,62-190,192-340,344-377,382-525,529-547,550-572,574-585,587-590,596-599,603-646,649-650,652-673,676-681,683-790,792-814,816-899,905-907,910-913,921-922
+  s_928b16fe3be95c::t_3e33949be2de30 591,601-602,900-904,908-909
+  s_928b16fe3be95c::t_3970fb9b3c206a 548-549,647-648,791
+  s_928b16fe3be95c::t_ad717132d6dab9 378-381
+  s_928b16fe3be95c::t_ab9d60a5785d78 526-527
+  s_928b16fe3be95c::t_abb162a4004ac2 914-920
+  s_928b16fe3be95c::t_19253b8f898a3c 674-675,682
+  s_928b16fe3be95c::t_c9a52de24371e9 191
+docs/assets/flow-player.js
+  s_928b16fe3be95c::t_056c3070cead7b 79
+  s_928b16fe3be95c::t_3970fb9b3c206a 317-318,388,398,528-529,534-535
+  s_928b16fe3be95c::t_98d82cc57d9ca1 40,269-270,277,282,300,313,319,618
+  s_928b16fe3be95c::t_5315e55abba999 41,291-293,299
+  s_928b16fe3be95c::t_c90824ef45282f 356-358
+  s_928b16fe3be95c::t_4e59ece251eddb 57-59,142-145,323-326,346-355,359-360,371-374,431-434,478-481,489-494,501-503,510-514,523-526,530-533,537-541,568-570,590-595,631-635,641-642,645-650,654-655
+  s_928b16fe3be95c::t_19d4d0631df7bb 290
+  s_928b16fe3be95c::t_ed9ccd60479d6b 640
+  s_928b16fe3be95c::t_ab9d60a5785d78 427,615
+  s_928b16fe3be95c::t_8ae4b72cf85950 1-39,42-56,60-78,80-141,146-268,271-276,278-281,283-289,294-298,301-312,314-316,320-322,327-345,361-370,375-387,389-397,399-426,428-430,435-477,482-488,495-500,504-509,515-522,527,536,542-567,571-589,596-614,616-617,619-630,636-639,643-644,651-653,656-688
+docs/examples/06-group-rows/index.html
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-86
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+docs/examples/04-passkey-prf/index.html
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-85
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+docs/examples/05-device-and-synced-copies/flow.js
+  s_928b16fe3be95c::t_4e59ece251eddb 10-15
+  s_928b16fe3be95c::t_8a3fc0ceb40265 1-9,16-81
+docs/examples/08-member-removal/flow.js
+  s_928b16fe3be95c::t_2183133d883598 1-95
+docs/examples/09-sealed-ingest/index.html
+  s_928b16fe3be95c::t_abb162a4004ac2 1-52,54,56-84
+  s_928b16fe3be95c::t_f0e00266121733 53,55
+docs/examples/11-qr-sign-in/flow.js
+  s_928b16fe3be95c::t_299596ebf90f04 1-29,37-50,55-142
+  s_928b16fe3be95c::t_4e59ece251eddb 30-36,51-54
+docs/404.html
+  s_928b16fe3be95c::t_331390605fd133 1-39
+docs/examples/01-account-setup/README.md
+  s_928b16fe3be95c::t_4eb16e7368f06e 1-8
+docs/examples/02-unlock-with-password/README.md
+  s_928b16fe3be95c::t_ac5037de7c824d 1-8
+docs/examples/03-recover-with-words/README.md
+  s_928b16fe3be95c::t_37e4d076457b9d 1-8
+docs/examples/04-passkey-prf/README.md
+  s_928b16fe3be95c::t_4b213a3debd58c 1-8
+docs/examples/05-device-and-synced-copies/README.md
+  s_928b16fe3be95c::t_eea00129a4ccd7 1-8
+docs/examples/06-group-rows/README.md
+  s_928b16fe3be95c::t_d1a8c790e4278b 1-8
+docs/examples/07-invite-link/README.md
+  s_928b16fe3be95c::t_b0f0db72d224ca 1-8
+docs/examples/08-member-removal/README.md
+  s_928b16fe3be95c::t_8850d0ba62d86e 1-8
+docs/examples/09-sealed-ingest/README.md
+  s_928b16fe3be95c::t_da4d4211edf740 1-8
+docs/examples/10-push-notifications/README.md
+  s_928b16fe3be95c::t_3790a2979564cc 1-8
+docs/examples/11-qr-sign-in/README.md
+  s_928b16fe3be95c::t_4fc3dcc265c011 1-8
+docs/examples/12-live-table-link/README.md
+  s_928b16fe3be95c::t_d0d33099507792 1-8
+docs/examples/13-migration/README.md
+  s_928b16fe3be95c::t_18e5115e3049b0 1-8
+docs/examples/README.md
+  s_928b16fe3be95c::t_4d7553e66f524d 1-6
+docs/examples/index.html
+  s_928b16fe3be95c::t_504b8956944817 1-59
+docs/guide/README.md
+  s_928b16fe3be95c::t_5d4799219c8af2 1-5
+docs/guide/api/README.md
+  s_928b16fe3be95c::t_44d809dbbe1e1b 1-5
+docs/guide/api/index.html
+  s_928b16fe3be95c::t_1f835708aaf85f 1-203
+docs/guide/index.html
+  s_928b16fe3be95c::t_3706e3456f70ab 1-124
+docs/guide/security/README.md
+  s_928b16fe3be95c::t_8d4e8ece2b0297 1-5
+docs/guide/security/index.html
+  s_928b16fe3be95c::t_c782a33f659f5b 1-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "14fd7d0e185ed9e85ea6257b171a0da45f9bf75a",
+  "prompts": {},
+  "sessions": {
+    "s_928b16fe3be95c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2bac7ae3-5cc1-46fb-9ed2-4968abe139c1",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "mvargas33 <mvargas.uchile@gmail.com>"
+    }
+  }
+}
