@@ -54,7 +54,7 @@ const passwordWrap = ez.wrapKey({ key: privateKey, wrappingKey: keyP, userId, ki
 - **The words are as good as the password.** Whoever finds the paper gets `key_A`. Say so when showing them.
 - **Lost words and a lost password lose the data**, unless another device or a passkey still unlocks it ([04](../04-passkey-prf), [05](../05-device-and-synced-copies)).
 - **The challenge proves key possession, not identity.** Anyone holding the words can reset the password. In a real app, also require a code sent to the account's email, and notify the user.
-- **Errors for bad words come from `@scure/bip39`,** not as an `ezpriv:` message, and an unknown word appears in the message. Don't send that error to crash reports.
+- **Bad words only tell you the phrase is wrong,** not which word. Show your own message ("check each word and their order"), and keep what the user typed out of logs and crash reports.
 - **The recovery wrap stays the same.** If the words may have leaked, make new words and a new `recovery` wrap after recovering, as at sign-up ([01](../01-account-setup)).
 
 ## Run it

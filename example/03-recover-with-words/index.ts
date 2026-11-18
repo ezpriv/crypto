@@ -108,7 +108,7 @@ server.show();
 
 // The words carry a checksum, so most typos are caught before any decryption.
 const badChecksum = Array(12).fill("abandon").join(" ");
-assert.throws(() => ez.keyFromWords(badChecksum), /checksum/i);
+assert.throws(() => ez.keyFromWords(badChecksum));
 assert.throws(() => ez.keyFromWords(`${words} extra`));
 // A different valid phrase passes the checksum but can't unwrap.
 assert.throws(
