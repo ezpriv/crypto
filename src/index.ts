@@ -113,7 +113,13 @@ export function createCrypto(sodium: Sodium) {
 	function seal(value: Uint8Array, publicKey: Uint8Array, fields: string[]) {
 		assertLength("publicKey", publicKey, KEY_BYTES);
 		const header = utf8(frame([String(VERSION), ...fields]));
-		const box = sodium.crypto_box_seal(concat(header, value), publicKey);
+		let box: Uint8Array;
+		try {
+			box = sodium.crypto_box_seal(concat(header, value), publicKey);
+		} catch {
+			// libsodium refuses small-order keys (32 zero bytes, for one) with its own message.
+			throw new Error("ezpriv: invalid public key");
+		}
 		return concat(Uint8Array.of(VERSION), box);
 	}
 
