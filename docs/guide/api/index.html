@@ -76,7 +76,7 @@
 			<h3>keyFromWords</h3>
 			<pre class="sig"><code class="language-ts">keyFromWords(words: string): Uint8Array</code></pre>
 			<p><code>key_R</code> from the 12 words. Trims, lowercases and joins with single spaces first, so case and extra spaces don't matter.</p>
-			<p><strong>Throws:</strong> <code>invalid recovery words</code> (an unknown word, a bad checksum or the wrong number of words), without quoting what was typed. A valid 24-word phrase gives <code>recovery entropy must be 16 bytes</code>.</p>
+			<p><strong>Throws:</strong> <code>invalid recovery words</code> (an unknown word, a bad checksum or a word count BIP-39 doesn't allow), without quoting what was typed. A valid phrase of more than 12 words gives <code>recovery entropy must be 16 bytes</code>.</p>
 			<p><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Spec</a></p>
 		</section>
 		<section class="api-entry" id="keyFromPrf">
@@ -189,7 +189,7 @@ interface PasswordParams { opsLimit: number; memLimit: number /* bytes */ }</cod
 				<tr><td><code>ezpriv: password params …</code></td><td>Argon2id parameters that aren't integers, or are outside the floor and cap</td></tr>
 				<tr><td><code>ezpriv: invalid public key</code></td><td>Sealing to a public key libsodium refuses, such as 32 zero bytes</td></tr>
 				<tr><td><code>ezpriv: cannot hash password</code></td><td>Argon2id failed, for example when it can't allocate its memory</td></tr>
-				<tr><td><code>ezpriv: invalid recovery words</code></td><td>An unknown word, a bad checksum or the wrong number of words</td></tr>
+				<tr><td><code>ezpriv: invalid recovery words</code></td><td>An unknown word, a bad checksum or a word count BIP-39 doesn't allow</td></tr>
 				<tr><td><code>ezpriv: linked keys don't match</code></td><td><code>openLink</code> got a private key that doesn't belong to the public key</td></tr>
 			</tbody>
 		</table></div>
