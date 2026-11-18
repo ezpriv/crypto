@@ -19,12 +19,21 @@ const SEAL_BYTES = 48;
 const ARGON2ID13 = 2; // libsodium's crypto_pwhash_ALG_ARGON2ID13
 const MIN_OPS_LIMIT = 2; // OWASP's minimum for Argon2id: t=2, m=19 MiB
 const MIN_MEM_LIMIT = 19 * 1024 * 1024;
+// Caps what a server can make a client spend: 4x the default memory, so a phone's WASM heap
+// survives it. Must stay below 2^31 bytes: react-native-libsodium casts memLimit to a C int.
+const MAX_OPS_LIMIT = 16;
+const MAX_MEM_LIMIT = 256 * 1024 * 1024;
 const PASSWORD_CONTEXT = "ezprivpw";
 const PASSKEY_CONTEXT = "ezprivpk";
 
 export interface KeyPair {
 	publicKey: Uint8Array;
 	privateKey: Uint8Array;
+}
+
+/** What a new browser shows as a QR code: `publicKey` and `secret`. The private key never leaves it. */
+export interface LinkRequest extends KeyPair {
+	secret: Uint8Array;
 }
 
 export interface PasswordParams {
@@ -159,15 +168,23 @@ export function createCrypto(sodium: Sodium) {
 			params?: PasswordParams;
 		}): { keyP: Uint8Array; authKey: Uint8Array } {
 			assertLength("salt", salt, SALT_BYTES);
-			if (params.opsLimit < MIN_OPS_LIMIT || params.memLimit < MIN_MEM_LIMIT) {
+			const { opsLimit, memLimit } = params;
+			// react-native-libsodium casts these to a C int unchecked, so this is the only check on native.
+			if (!Number.isSafeInteger(opsLimit) || !Number.isSafeInteger(memLimit)) {
+				throw new Error("ezpriv: password params must be integers");
+			}
+			if (opsLimit < MIN_OPS_LIMIT || memLimit < MIN_MEM_LIMIT) {
 				throw new Error("ezpriv: password params below the minimum");
+			}
+			if (opsLimit > MAX_OPS_LIMIT || memLimit > MAX_MEM_LIMIT) {
+				throw new Error("ezpriv: password params above the maximum");
 			}
 			const master = sodium.crypto_pwhash(
 				KEY_BYTES,
 				utf8(password.normalize("NFC")),
 				salt,
-				params.opsLimit,
-				params.memLimit,
+				opsLimit,
+				memLimit,
 				ARGON2ID13,
 			);
 			return {
@@ -177,7 +194,8 @@ export function createCrypto(sodium: Sodium) {
 		},
 
 		/** 12 English BIP-39 words carrying 128 random bits. */
-		newRecoveryWords: () => entropyToMnemonic(sodium.randombytes_buf(16), wordlist),
+		newRecoveryWords: () =>
+			entropyToMnemonic(sodium.randombytes_buf(16), wordlist),
 
 		/** `key_R` from the 12 words. Throws on an unknown word or a bad checksum. */
 		keyFromWords(words: string): Uint8Array {
@@ -301,31 +319,51 @@ export function createCrypto(sodium: Sodium) {
 			keyPair: KeyPair;
 		}) => open(sealed, keyPair, ["ezpriv/user", context]),
 
-		/** A one-time key pair a new browser shows as a QR code. */
-		newLinkRequest: newKeyPair,
+		/**
+		 * A one-time key pair and secret for a new browser. The QR code carries `publicKey` and
+		 * `secret`, straight from screen to camera, so the server never sees the secret.
+		 */
+		newLinkRequest: (): LinkRequest => ({
+			...newKeyPair(),
+			secret: sodium.crypto_aead_xchacha20poly1305_ietf_keygen(),
+		}),
 
-		/** On the phone: seals the user's key pair to the browser's one-time public key. */
+		/**
+		 * On the phone: encrypts the user's key pair under the QR secret, then seals it to the
+		 * browser's one-time public key. Ask the user to confirm before calling this: whoever
+		 * showed the QR code gets the private key.
+		 */
 		sealForLink({
 			userKeys,
 			channelId,
 			userId,
 			linkPublicKey,
+			linkSecret,
 		}: {
 			userKeys: KeyPair;
 			channelId: string;
 			userId: string;
 			linkPublicKey: Uint8Array;
+			linkSecret: Uint8Array;
 		}): Uint8Array {
 			assertLength("privateKey", userKeys.privateKey, KEY_BYTES);
 			assertLength("publicKey", userKeys.publicKey, KEY_BYTES);
+			const fields = ["ezpriv/link", channelId, userId];
 			return seal(
-				concat(userKeys.privateKey, userKeys.publicKey),
+				encrypt(
+					concat(userKeys.privateKey, userKeys.publicKey),
+					linkSecret,
+					fields,
+				),
 				linkPublicKey,
-				["ezpriv/link", channelId, userId],
+				fields,
 			);
 		},
 
-		/** In the browser: opens the user's key pair with the one-time key pair. */
+		/**
+		 * In the browser: opens the user's key pair. Only someone who read the QR code can have made
+		 * `sealed`. Compare the returned `publicKey` with the account's before using the keys.
+		 */
 		openLink({
 			sealed,
 			channelId,
@@ -335,14 +373,29 @@ export function createCrypto(sodium: Sodium) {
 			sealed: Uint8Array;
 			channelId: string;
 			userId: string;
-			linkKeys: KeyPair;
+			linkKeys: LinkRequest;
 		}): KeyPair {
-			const keys = open(sealed, linkKeys, ["ezpriv/link", channelId, userId]);
+			const fields = ["ezpriv/link", channelId, userId];
+			const keys = decrypt(
+				open(sealed, linkKeys, fields),
+				linkKeys.secret,
+				fields,
+			);
 			assertLength("linked keys", keys, 2 * KEY_BYTES);
-			return {
-				privateKey: keys.slice(0, KEY_BYTES),
-				publicKey: keys.slice(KEY_BYTES),
-			};
+			const privateKey = keys.slice(0, KEY_BYTES);
+			const publicKey = keys.slice(KEY_BYTES);
+			// ponytail: a seal round trip proves the pair matches; use crypto_scalarmult_base
+			// once react-native-libsodium has it on native.
+			try {
+				sodium.crypto_box_seal_open(
+					sodium.crypto_box_seal(new Uint8Array(0), publicKey),
+					publicKey,
+					privateKey,
+				);
+			} catch {
+				throw new Error("ezpriv: linked keys don't match");
+			}
+			return { privateKey, publicKey };
 		},
 	};
 }

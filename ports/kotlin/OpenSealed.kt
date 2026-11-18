@@ -6,6 +6,7 @@ import com.goterl.lazysodium.SodiumAndroid
 class EzprivException(message: String) : Exception(message)
 
 private const val SEAL_BYTES = 48 // crypto_box_SEALBYTES
+private const val KEY_BYTES = 32
 
 /** Netstrings, as in SPEC.md "Frames". */
 fun frame(fields: List<String>): String =
@@ -19,6 +20,8 @@ fun openSealed(
     privateKey: ByteArray,
     sodium: LazySodiumAndroid = LazySodiumAndroid(SodiumAndroid()),
 ): ByteArray {
+    // lazysodium passes keys to native code unchecked.
+    if (publicKey.size != KEY_BYTES || privateKey.size != KEY_BYTES) throw EzprivException("keys must be 32 bytes")
     if (sealed.isEmpty() || sealed[0] != 1.toByte()) throw EzprivException("unsupported version")
     val box = sealed.copyOfRange(1, sealed.size)
     if (box.size < SEAL_BYTES) throw EzprivException("cannot open")
