@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>04 · Unlock with a passkey (PRF) · ezpriv/crypto</title>
+	<meta name="description" content="Optional: the user adds a passkey, and later unlocks with Face ID, Touch ID or a security key instead of typing the password.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/examples/04-passkey-prf/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+	<script type="module" src="/assets/flow-player.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<div class="crumbs"><a href="/examples/">Examples</a> / 04</div>
+		<span class="eyebrow">Example 04</span>
+		<h1>Unlock with a passkey (PRF)</h1>
+		<p class="lead">Optional: the user adds a passkey, and later unlocks with Face ID, Touch ID or a security key instead of typing the password.</p>
+		<div class="links">
+			<a class="button" href="#in-practice">In practice</a>
+			<a class="button" href="#flow">Step-by-step flow</a>
+			<a class="button" href="#code">Code</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/blob/main/example/04-passkey-prf/index.ts">View on GitHub</a>
+		</div>
+
+		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
+		<div class="prose">
+			<p><strong>What the user sees.</strong> Optional: the user adds a passkey, and later unlocks with Face ID, Touch ID or a security key instead of typing the password. Behind that, the passkey's PRF extension gives 32 secret bytes that are the same every time for one credential and salt. <code>keyFromPrf</code> turns them into <code>key_F</code>, which wraps <code>key_A</code> under kind <code>passkey:&lt;credentialId&gt;</code>, one row per passkey.</p>
+			<p><strong>Why.</strong> Typing a long password on every new device is tedious, and short passwords are guessable. A passkey's PRF output never leaves the authenticator unencrypted and can't be guessed, and passkeys sync across the user's devices on their own (iCloud Keychain, Google Password Manager).</p>
+			
+		</div>
+		<div class="two-col">
+			<div class="pros"><h3>Pros</h3><ul><li>Nothing to type, and nothing to guess: the PRF output is a 32-byte secret, not a password.</li><li>One row per passkey. Adding or removing one never touches the password wrap, the recovery wrap or the other passkeys.</li><li>The kind includes the credential id, so one passkey's wrap can't be passed off as another's.</li><li>Passkeys sync through the platform, so a new phone on the same account often unlocks without the password.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>Not every authenticator supports PRF.</strong> Check <code>getClientExtensionResults().prf.enabled</code> when creating the passkey, and keep the password and words as the ways in that always work.</li><li><strong>Unlocking isn't signing in.</strong> The server still has to verify the WebAuthn assertion before handing out the rows. This example only shows the unlock.</li><li><strong>Deleting the passkey from the password manager</strong> loses that way in. Its row on the server is then useless, but harmless.</li><li><strong>Whoever controls the synced passkey</strong> (the platform account, its recovery) can unlock <code>key_A</code> through it.</li><li><strong>An active server</strong> can still serve a different public key to other users (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li></ul></div>
+		</div>
+
+		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
+		<p class="lead">Each step shows who acts, which function runs, what travels and what every party holds afterwards. Use the controls, the step list or the arrow keys to replay any step.</p>
+		<section class="player" data-flow="./flow.js" aria-label="Animated flow of example 04">
+			<noscript>This animation needs JavaScript. The sequence diagram is in the <a href="https://github.com/ezpriv/crypto/tree/main/example/04-passkey-prf#flow">example's README</a>.</noscript>
+		</section>
+
+		<h2 id="code"><span class="section-tag">3</span>Code</h2>
+		<div class="prose">
+			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/04-passkey-prf/index.ts"><code>example/04-passkey-prf/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
+			<p>The PRF output is simulated as 32 random bytes per credential and salt. For real, it comes from:</p>
+<ul><li><strong>Browsers:</strong> <code>navigator.credentials.get({ publicKey: { …, extensions: { prf: { eval: { first: prfSalt } } } } })</code>, then <code>getClientExtensionResults().prf.results.first</code>.</li><li><strong>iOS 18+ and Android 14+:</strong> the same request through <a href="https://github.com/peterferguson/react-native-passkeys"><code>react-native-passkeys</code></a>.</li></ul>
+<pre><code class="language-ts">const keyF = ez.keyFromPrf(prfOutput);
+const wrap = ez.wrapKey({ key: keyA, wrappingKey: keyF, userId, kind: `passkey:${credentialId}` });
+// later, on any device with the passkey
+const keyA = ez.unwrapKey({ wrapped: wrap, wrappingKey: ez.keyFromPrf(prfOutput), userId, kind: `passkey:${credentialId}` });</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>keyFromPrf</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#derived-keys">Derived keys</a></td></tr><tr><td><code>wrapKey</code>, <code>unwrapKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
+			<h3>Run it</h3>
+			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
+pnpm install &amp;&amp; pnpm build
+node example/04-passkey-prf/index.ts</code></pre>
+		</div>
+		<div class="links">
+			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/04-passkey-prf/index.ts">Full example on GitHub</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/04-passkey-prf">README with the sequence diagram</a>
+		</div>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/03-recover-with-words/">← 03 · Recover with the 12 words</a><a class="button" href="/examples/05-device-and-synced-copies/">05 · Device and synced copies of <code>key_A</code> →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

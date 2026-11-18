@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Security and limits · ezpriv/crypto</title>
+	<meta name="description" content="What @ezpriv/crypto protects against, what it doesn&#x27;t, and what an app must do before shipping.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/guide/security/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<span class="eyebrow">Guide</span>
+		<h1>Security and limits</h1>
+		<p class="lead">The library keeps data unreadable to a server that stores and reads it. It does not yet protect against a server that tampers. It has not been audited.</p>
+		<div class="prose">
+		<h2 id="protects">What it protects</h2>
+		<ul>
+			<li>The server, its backups and anyone who breaches its database see public keys, salts and ciphertexts, never a password, recovery words, <code>key_A</code> or a group key.</li>
+			<li>Ciphertexts are bound to what they belong to: a row to its table and id, a wrap to its user and kind, a sealed value to its context. Moved or changed bytes are refused.</li>
+			<li>Argon2id parameters have a floor and a cap, so a server can't make keys cheap to crack or crash a phone.</li>
+			<li>It writes no cryptography of its own: every primitive is libsodium's.</li>
+		</ul>
+		<h2 id="limits">Limits</h2>
+		<div class="callout"><strong>An active server can read group data.</strong> Sealed messages are anonymous: anyone with a public key can seal to it, so <code>openGroupKey</code> can't tell who sealed a group key, and a server could seal a key it knows. Public keys aren't authenticated either: a server could hand out its own in place of a member's and receive the group key. Until signatures and key fingerprints arrive, the data is only safe from a server that stores and reads but doesn't tamper.</div>
+		<div class="callout"><strong>Linking trusts whoever shows the QR code.</strong> <code>sealForLink</code> sends the private key to the browser behind the code the phone scanned. If an attacker gets a user to scan theirs, they get the key. The app must ask the user to confirm on the phone.</div>
+		<div class="callout"><strong>No forward secrecy.</strong> Whoever gets a private key can open everything sealed to it.</div>
+		<div class="callout"><strong>No key rotation bookkeeping.</strong> The app records which group key version encrypted each row.</div>
+		<div class="callout"><strong>JavaScript can't wipe memory.</strong> Keys stay until garbage collection.</div>
+		<div class="callout"><strong>No post-quantum protection yet.</strong> A later version byte will mark a hybrid scheme.</div>
+		<p>These come from the <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">Limits section of SPEC.md</a>, which is the authoritative list.</p>
+		<h2 id="checklist">Before you ship</h2>
+		<ul>
+			<li>Before <code>sealForLink</code>, show a confirmation on the phone, and in the browser compare the <code>publicKey</code> that <code>openLink</code> returns with the account's.</li>
+			<li>Put both <code>publicKey</code> and <code>secret</code> from <code>newLinkRequest</code> in the QR code, never send the secret to the server, and treat the code as secret until it's used.</li>
+			<li>Require long passwords and rate-limit sign-in: whoever holds the database can still guess weak passwords offline, one Argon2id run per guess.</li>
+			<li>Keep passwords, recovery words, keys and decrypted values out of logs and crash reports.</li>
+			<li>On the web, serve a strict Content-Security-Policy (with <code>'wasm-unsafe-eval'</code> for libsodium): any script on the page can read the keys it holds.</li>
+			<li>Tell users that losing every way in (password, words, devices, passkeys) loses their data, and that nobody can recover it.</li>
+		</ul>
+		<h2 id="report">Reporting a vulnerability</h2>
+		<p>See <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+		</div>
+		<nav class="pager" aria-label="Guide"><a class="button" href="/guide/api/">← API reference</a><a class="button" href="/examples/">Examples →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

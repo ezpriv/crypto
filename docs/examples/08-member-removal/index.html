@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>08 · Removing a member · ezpriv/crypto</title>
+	<meta name="description" content="A member leaves the group or is removed, and from then on can&#x27;t read what the group adds.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/examples/08-member-removal/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+	<script type="module" src="/assets/flow-player.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<div class="crumbs"><a href="/examples/">Examples</a> / 08</div>
+		<span class="eyebrow">Example 08</span>
+		<h1>Removing a member</h1>
+		<p class="lead">A member leaves the group or is removed, and from then on can't read what the group adds.</p>
+		<div class="links">
+			<a class="button" href="#in-practice">In practice</a>
+			<a class="button" href="#flow">Step-by-step flow</a>
+			<a class="button" href="#code">Code</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/blob/main/example/08-member-removal/index.ts">View on GitHub</a>
+		</div>
+
+		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
+		<div class="prose">
+			<p><strong>What the user sees.</strong> A member leaves the group or is removed, and from then on can't read what the group adds. Behind that, a remaining member's phone makes a new group key (version 2) and seals it only to the members who stay. New rows use version 2. Old rows keep version 1, so nothing is re-encrypted. The removed member keeps version 1, which they already had, but never gets version 2.</p>
+			<p><strong>Why.</strong> The server stops sending rows to a removed member, but that's access control on a server the app doesn't fully trust. A new key makes sure that even with the server's help, the removed member can't read new rows.</p>
+			
+		</div>
+		<div class="two-col">
+			<div class="pros"><h3>Pros</h3><ul><li>Removing someone costs one new key and one sealed copy per remaining member. No row is re-encrypted.</li><li>The removed member can't read new rows, even with the server's help, and can't open anyone else's sealed copy of version 2.</li><li>The same steps work when a key may have leaked, for example through an invite link (<a href="/examples/07-invite-link/">07</a>).</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>No taking back.</strong> The removed member already had version 1 and every row they downloaded. Re-encrypting old rows with version 2 doesn't change that.</li><li><strong>The app does the bookkeeping:</strong> which version encrypted each row, and which versions each member holds. The library doesn't record it (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li><li><strong>The version isn't bound into the sealed key</strong> (only the group id is). If the server mislabels versions, decryption fails rather than mixing keys, but the app should treat that as an error, not as missing data.</li><li><strong>Someone has to be online</strong> to make version 2. Until then, new rows would go out under version 1. Block writes until the new key exists.</li><li><strong>An active server</strong> could add its own public key as a member and receive version 2 (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li></ul></div>
+		</div>
+
+		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
+		<p class="lead">Each step shows who acts, which function runs, what travels and what every party holds afterwards. Use the controls, the step list or the arrow keys to replay any step.</p>
+		<section class="player" data-flow="./flow.js" aria-label="Animated flow of example 08">
+			<noscript>This animation needs JavaScript. The sequence diagram is in the <a href="https://github.com/ezpriv/crypto/tree/main/example/08-member-removal#flow">example's README</a>.</noscript>
+		</section>
+
+		<h2 id="code"><span class="section-tag">3</span>Code</h2>
+		<div class="prose">
+			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/08-member-removal/index.ts"><code>example/08-member-removal/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
+			<pre><code class="language-ts">const v2 = ez.newGroupKey();
+for (const userId of [&quot;ana&quot;, &quot;ben&quot;]) {
+	groupKeys.set(`${groupId}/2/${userId}`, ez.sealGroupKey({ groupKey: v2, groupId, publicKey: people[userId].publicKey }));
+}
+expenses.set(rowId, { keyVersion: 2, data: ez.encryptRow({ value, groupKey: v2, table: &quot;expense&quot;, rowId }) });
+
+// any member: the key for a row is the one with the row&#x27;s keyVersion
+const groupKey = keys.get(row.keyVersion);</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>newGroupKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#primitives">Primitives</a></td></tr><tr><td><code>sealGroupKey</code>, <code>openGroupKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr><tr><td><code>encryptRow</code>, <code>decryptRow</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
+			<h3>Run it</h3>
+			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
+pnpm install &amp;&amp; pnpm build
+node example/08-member-removal/index.ts</code></pre>
+		</div>
+		<div class="links">
+			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/08-member-removal/index.ts">Full example on GitHub</a>
+			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/08-member-removal">README with the sequence diagram</a>
+		</div>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/07-invite-link/">← 07 · Invite link</a><a class="button" href="/examples/09-sealed-ingest/">09 · Sealed ingest →</a></nav>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>

@@ -12,6 +12,8 @@ Node 24+ (Node's type stripping runs `scripts/*.ts`) and pnpm `12.10.1` (`packag
 | `pnpm check` | `biome check --write .` (format, lint and organize imports with fixes) |
 | `pnpm check-pins` | Fails if a dependency or `packageManager` isn't an exact version ([decision 002](../decisions/002-exact-pins.md)) |
 | `pnpm examples` | Runs every `example/*/index.ts` in order; needs `pnpm build` first, since the examples import `@ezpriv/crypto` from `dist/` |
+| `pnpm check-site` | Checks `docs/`: a page, `flow.js` and README per example, flows naming real actors, local links, a README linking to the site in every folder, vendored Three.js hashes |
+| `python3 -m http.server 8080 --directory docs` | Serves the website locally (without `_headers`) |
 | `pnpm vectors` | Regenerates `vectors/vectors.json`. Derived keys stay the same; ciphertexts change because nonces and ephemeral keys are random |
 | `cd ports/swift && swift test` | The Swift port against the vectors |
 | `trivy fs --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --ignore-unfixed --skip-dirs node_modules .` | CI's Trivy scan. Use Trivy 0.72 or later: older versions can't read pnpm 12's lockfile |

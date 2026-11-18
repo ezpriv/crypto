@@ -27,7 +27,8 @@
 		"lint": "biome ci .",
 		"check": "biome check --write .",
 		"check-pins": "node scripts/check-pins.ts",
-		"examples": "node scripts/run-examples.ts"
+		"examples": "node scripts/run-examples.ts",
+		"check-site": "node scripts/check-site.ts"
 	},
 	"packageManager": "pnpm@12.10.1",
 	"dependencies": {

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>ezpriv/crypto</title>
+	<meta name="description" content="End-to-end encryption for apps, built on libsodium: user keys, unlock paths, group keys, encrypted rows, sealed values and device linking.">
+	<meta name="theme-color" content="#0a0f1e">
+	<link rel="canonical" href="https://ezpriv.xyz/">
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/assets/site.css">
+	<script type="module" src="/assets/site.js"></script>
+</head>
+<body>
+	<header class="site-header">
+		<div class="inner">
+			<a class="brand" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 27.5 9v14L16 29.5 4.5 23V9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="14" r="3.4" fill="currentColor"/><path d="M14.4 16.4h3.2l1 6.1h-5.2z" fill="currentColor"/></svg><span>ezpriv/crypto</span></a>
+			<nav class="site-nav" aria-label="Main">
+				<a href="/guide/">Guide</a>
+				<a href="/guide/api/">API</a>
+				<a href="/guide/security/">Security</a>
+				<a href="/examples/">Examples</a>
+				<a href="https://github.com/ezpriv/crypto">GitHub</a>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<section class="hero">
+			<span class="eyebrow">Open source · MIT · built on libsodium</span>
+			<h1>End-to-end encryption for your app, without writing cryptography</h1>
+			<p class="lead"><code>@ezpriv/crypto</code> combines libsodium's primitives into what an app needs to keep its users' data unreadable to its own server: user keys and ways to unlock them, group keys, encrypted rows, sealed values and linking a browser by QR code. Every byte is fixed by a written spec and checked by test vectors.</p>
+			<div class="actions">
+				<a class="button primary" href="/guide/">Get started</a>
+				<a class="button" href="/examples/">See the examples</a>
+				<a class="button" href="https://github.com/ezpriv/crypto">GitHub</a>
+			</div>
+			<pre><code class="language-bash">npm install @ezpriv/crypto</code></pre>
+		</section>
+		<h2>What it gives you</h2>
+		<div class="grid">
+			<a class="card" href="/examples/01-account-setup/"><h3>Keys and ways to unlock them</h3><p>A key pair per user. The private key is wrapped under a password (Argon2id), 12 recovery words, a passkey's PRF output or another device.</p></a>
+			<a class="card" href="/examples/06-group-rows/"><h3>Group keys and encrypted rows</h3><p>One random key per group, sealed to each member. Rows are encrypted and bound to their table and id, so the server can't move or alter them.</p></a>
+			<a class="card" href="/examples/09-sealed-ingest/"><h3>Values only the user opens</h3><p>The server seals incoming data, and the sender's app seals push notifications, to a user's public key. A context label keeps one kind from passing for another.</p></a>
+			<a class="card" href="/examples/11-qr-sign-in/"><h3>Link a browser by QR code</h3><p>A phone hands its keys to a new browser through a QR code whose secret never reaches the server.</p></a>
+			<a class="card" href="/guide/#runtimes"><h3>One format, any runtime</h3><p>React Native, browsers, service workers and Node through the libsodium each one has. Swift and Kotlin ports open sealed notifications.</p></a>
+			<a class="card" href="/guide/security/"><h3>Honest limits</h3><p>It protects against a server that reads, not yet one that tampers. Every limit is written down.</p></a>
+		</div>
+		<h2>Learn it from the examples</h2>
+		<p>Each example animates the flow step by step: who acts, which function runs, what travels and what every party holds.</p>
+		<div class="grid">
+			<a class="card" href="/examples/01-account-setup/"><span class="num">01</span><h3>Account setup</h3><p>The user signs up with an email and a password, and writes down 12 recovery words shown once.</p></a>
+			<a class="card" href="/examples/02-unlock-with-password/"><span class="num">02</span><h3>Unlock with a password</h3><p>On a new phone, the user types the email and password they signed up with and sees their data.</p></a>
+			<a class="card" href="/examples/03-recover-with-words/"><span class="num">03</span><h3>Recover with the 12 words</h3><p>A user who forgot their password types the 12 recovery words, chooses a new password and is back in, with all their data.</p></a>
+			<a class="card" href="/examples/04-passkey-prf/"><span class="num">04</span><h3>Unlock with a passkey (PRF)</h3><p>Optional: the user adds a passkey, and later unlocks with Face ID, Touch ID or a security key instead of typing the password.</p></a>
+			<a class="card" href="/examples/05-device-and-synced-copies/"><span class="num">05</span><h3>Device and synced copies of <code>key_A</code></h3><p>After unlocking once, the user isn't asked for the password again on that device, and often not on their next phone either.</p></a>
+			<a class="card" href="/examples/06-group-rows/"><span class="num">06</span><h3>Group rows</h3><p>Users share a group (a trip, a flat) and add expenses that every member sees, while the server stores only ciphertexts.</p></a>
+		</div>
+		<p><a href="/examples/">All 13 examples →</a></p>
+	</main>
+	<footer class="site-footer">
+		<div class="inner">
+			<span>@ezpriv/crypto · MIT license · built on <a href="https://doc.libsodium.org">libsodium</a></span>
+			<span><a href="https://github.com/ezpriv/crypto">Source</a> · <a href="https://www.npmjs.com/package/@ezpriv/crypto">npm</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md">Format spec</a> · <a href="https://github.com/ezpriv/crypto/blob/main/SECURITY.md">Report a vulnerability</a></span>
+		</div>
+	</footer>
+</body>
+</html>
