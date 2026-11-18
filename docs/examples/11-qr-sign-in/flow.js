@@ -136,7 +136,7 @@ export default {
 			to: "computer",
 			carry: "cipher:Ana's public key + another private key",
 			refused: "linked keys don't match",
-			text: "With the photo's secret the attacker can make a link, but openLink checks the private key belongs to the public key. A pair of their own fails the app's comparison with the account's public key.",
+			text: "With the photo's secret the attacker can make a link, but openLink checks the private key belongs to the public key. A pair of their own, approved from their own account, would sign this computer in to the attacker's account: that's why the QR code stays secret until it's used.",
 		},
 	],
 };
