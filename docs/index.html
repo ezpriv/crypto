@@ -40,7 +40,7 @@
 		<div class="grid">
 			<a class="card" href="/examples/01-account-setup/"><h3>Keys and ways to unlock them</h3><p>A key pair per user. The private key is wrapped under a password (Argon2id), 12 recovery words, a passkey's PRF output or another device.</p></a>
 			<a class="card" href="/examples/06-group-rows/"><h3>Group keys and encrypted rows</h3><p>One random key per group, sealed to each member. Rows are encrypted and bound to their table and id, so the server can't move or alter them.</p></a>
-			<a class="card" href="/examples/09-sealed-ingest/"><h3>Values only the user opens</h3><p>The server seals incoming data and push notifications to a user's public key. A context label keeps one kind from passing for another.</p></a>
+			<a class="card" href="/examples/09-sealed-ingest/"><h3>Values only the user opens</h3><p>The server seals incoming data, and the sender's app seals push notifications, to a user's public key. A context label keeps one kind from passing for another.</p></a>
 			<a class="card" href="/examples/11-qr-sign-in/"><h3>Link a browser by QR code</h3><p>A phone hands its keys to a new browser through a QR code whose secret never reaches the server.</p></a>
 			<a class="card" href="/guide/#runtimes"><h3>One format, any runtime</h3><p>React Native, browsers, service workers and Node through the libsodium each one has. Swift and Kotlin ports open sealed notifications.</p></a>
 			<a class="card" href="/guide/security/"><h3>Honest limits</h3><p>It protects against a server that reads, not yet one that tampers. Every limit is written down.</p></a>

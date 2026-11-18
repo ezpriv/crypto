@@ -176,7 +176,7 @@ interface LinkRequest extends KeyPair { secret: Uint8Array }
 interface PasswordParams { opsLimit: number; memLimit: number /* bytes */ }</code></pre>
 		<p><code>Sodium</code> lists the libsodium functions the package calls, and nothing else. <code>libsodium-wrappers-sumo</code> and <code>react-native-libsodium</code> both satisfy it.</p>
 		<h2 id="errors">Errors</h2>
-		<p>Every error is a plain <code>Error</code> whose message starts with <code>ezpriv:</code>. libsodium's own errors are caught and replaced, so the messages are the same on every runtime.</p>
+		<p>Every error is a plain <code>Error</code> whose message starts with <code>ezpriv:</code>. libsodium's own errors are caught and replaced, so the messages are the same on every runtime. One exception for now: <code>keyFromWords</code> passes on the errors of <code>@scure/bip39</code>, which don't start with <code>ezpriv:</code> and can quote the mistyped word, so keep them out of logs.</p>
 		<div class="table-wrap"><table>
 			<thead><tr><th>Message</th><th>Means</th></tr></thead>
 			<tbody>
