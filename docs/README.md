@@ -63,10 +63,10 @@ export default {
    | Project name | `ezpriv` (gives `ezpriv.pages.dev`; if it's taken, any name works and the records below use it) |
    | Production branch | `main` |
    | Framework preset | None |
-   | Build command | empty |
+   | Build command | `exit 0` (nothing to build) |
    | Build output directory | `docs` |
    | Root directory | empty |
-   | Environment variables | none |
+   | Environment variables | `SKIP_DEPENDENCY_INSTALL` = `1`, so Pages doesn't install the library's dev dependencies because it sees `pnpm-lock.yaml`. Not a secret |
 
 4. **Add the custom domains.** Pages project → Custom domains → Set up a custom domain → `ezpriv.xyz`. Since the zone is on Cloudflare, it creates the DNS record itself. Repeat for `www.ezpriv.xyz`.
 5. **Send `www` to the apex.** Rules → Redirect Rules → create a rule: when the hostname equals `www.ezpriv.xyz`, redirect dynamically to `concat("https://ezpriv.xyz", http.request.uri.path)` with status 301 and the query string kept.
