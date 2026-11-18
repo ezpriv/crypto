@@ -121,13 +121,13 @@ export default {
 			add: { computer: ["secret:key_A"] },
 		},
 		{
-			title: "Pushing their own keys",
+			title: "A server pushing its own keys",
 			attack: true,
-			from: "mallory",
+			from: "server",
 			to: "computer",
 			carry: "cipher:forged link, no secret",
 			refused: "cannot decrypt",
-			text: "Knowing the public key isn't enough: without the QR secret the inner layer doesn't decrypt.",
+			text: "Even if a server learned the one-time public key, it never saw the QR secret, so the inner layer doesn't decrypt.",
 		},
 		{
 			title: "A pair that doesn't match",
@@ -136,7 +136,7 @@ export default {
 			to: "computer",
 			carry: "cipher:Ana's public key + another private key",
 			refused: "linked keys don't match",
-			text: "openLink checks the private key belongs to the public key.",
+			text: "With the photo's secret the attacker can make a link, but openLink checks the private key belongs to the public key. A pair of their own fails the app's comparison with the account's public key.",
 		},
 	],
 };
