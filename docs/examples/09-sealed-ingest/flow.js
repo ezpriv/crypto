@@ -26,7 +26,7 @@ export default {
 		{
 			title: "Hold it only in memory",
 			at: "server",
-			call: "parse the message",
+			call: "receive(raw)",
 			text: "The plain message exists only in memory for a moment: never written to disk, queues or logs.",
 			add: { server: ["plain:inbound email"] },
 		},
@@ -50,7 +50,7 @@ export default {
 			title: "Open it",
 			at: "ana",
 			call: 'ez.openSealed({ sealed, context: "inbound", keyPair })',
-			text: "Now it's Ana's own data. Shared with a group, it's re-encrypted as a row (example 06).",
+			text: "Then the phone parses it: the server never had to. Now it's Ana's own data, and shared with a group it's re-encrypted as a row (example 06).",
 			add: { ana: ["plain:decrypted email"] },
 		},
 		{

@@ -57,11 +57,11 @@
 		<h2 id="code"><span class="section-tag">3</span>Code</h2>
 		<div class="prose">
 			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/09-sealed-ingest/index.ts"><code>example/09-sealed-ingest/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
-			<pre><code class="language-ts">// server, on arrival
-const sealed = ez.sealForUser({ value: text(JSON.stringify(email)), context: &quot;inbound&quot;, publicKey });
+			<pre><code class="language-ts">// server, on arrival: the raw message, as is
+const sealed = ez.sealForUser({ value: text(raw), context: &quot;inbound&quot;, publicKey });
 
-// Ana&#x27;s phone
-const email = JSON.parse(read(ez.openSealed({ sealed, context: &quot;inbound&quot;, keyPair: ana })));</code></pre>
+// Ana&#x27;s phone: open, then parse
+const email = parseEmail(read(ez.openSealed({ sealed, context: &quot;inbound&quot;, keyPair: ana })));</code></pre>
 <div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>sealForUser</code>, <code>openSealed</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
 			<h3>Run it</h3>
 			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto

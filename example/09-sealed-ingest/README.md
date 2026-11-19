@@ -16,7 +16,7 @@ sequenceDiagram
     Server->>Server: stores the sealed bytes, drops the plain message
     Phone->>Server: get my inbox
     Server-->>Phone: sealed items
-    Phone->>Phone: openSealed with key_A, context inbound
+    Phone->>Phone: openSealed with key_A, context inbound, then parses it
 ```
 
 ## Code
@@ -24,11 +24,11 @@ sequenceDiagram
 From [`index.ts`](index.ts):
 
 ```ts
-// server, on arrival
-const sealed = ez.sealForUser({ value: text(JSON.stringify(email)), context: "inbound", publicKey });
+// server, on arrival: the raw message, as is
+const sealed = ez.sealForUser({ value: text(raw), context: "inbound", publicKey });
 
-// Ana's phone
-const email = JSON.parse(read(ez.openSealed({ sealed, context: "inbound", keyPair: ana })));
+// Ana's phone: open, then parse
+const email = parseEmail(read(ez.openSealed({ sealed, context: "inbound", keyPair: ana })));
 ```
 
 | Function | Spec |

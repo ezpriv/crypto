@@ -17,23 +17,26 @@ const ben = ez.createUserKeys();
 publicKeys.set("ana", ana.publicKey);
 publicKeys.set("ben", ben.publicKey);
 
-// Server: an email for Ana arrives; it's sealed to her public key at once, only the sealed bytes kept.
+// Server: an email for Ana arrives and is sealed to her public key as is; only the sealed bytes stay.
 // In a real app: never write the plain message to disk, queues or logs.
 function receive(userId: string, raw: string) {
-	const [, headers = "", body = ""] =
-		/^([\s\S]*?)\r?\n\r?\n([\s\S]*)$/.exec(raw) ?? [];
-	const readHeader = (name: string) =>
-		new RegExp(`^${name}: (.+)$`, "m").exec(headers)?.[1] ?? "";
-	const email: InboundEmail = {
-		from: readHeader("From"),
-		subject: readHeader("Subject"),
-		body,
-	};
 	const publicKey = publicKeys.get(userId);
 	assert.ok(publicKey);
-	const value = text(JSON.stringify(email));
-	const sealed = ez.sealForUser({ value, context: "inbound", publicKey });
+	const sealed = ez.sealForUser({
+		value: text(raw),
+		context: "inbound",
+		publicKey,
+	});
 	inbox.set(crypto.randomUUID(), { userId, sealed });
+}
+
+// Ana's phone parses what it opened, so the server never has to. A message may have no body.
+function parseEmail(raw: string): InboundEmail {
+	const [, headers = "", body = ""] =
+		/^([\s\S]*?)(?:\r?\n\r?\n([\s\S]*))?$/.exec(raw) ?? [];
+	const readHeader = (name: string) =>
+		new RegExp(`^${name}: (.+)$`, "m").exec(headers)?.[1] ?? "";
+	return { from: readHeader("From"), subject: readHeader("Subject"), body };
 }
 receive(
 	"ana",
@@ -45,7 +48,7 @@ assert.ok(!server.dump().includes("monthly report"));
 // Ana's phone: fetch her sealed inbox and open each item with key_A.
 const mine = [...inbox.values()].filter((item) => item.userId === "ana");
 const emails = mine.map(({ sealed }) =>
-	JSON.parse(read(ez.openSealed({ sealed, context: "inbound", keyPair: ana }))),
+	parseEmail(read(ez.openSealed({ sealed, context: "inbound", keyPair: ana }))),
 );
 assert.deepEqual(emails, [
 	{
@@ -55,6 +58,11 @@ assert.deepEqual(emails, [
 	},
 ]);
 show("Ana's phone shows", emails);
+assert.deepEqual(parseEmail("From: a@partner.example\r\nSubject: Ping"), {
+	from: "a@partner.example",
+	subject: "Ping",
+	body: "",
+});
 // In a real app: when Ana shares it with a group, her app re-encrypts it as a row (see 06).
 
 const [item] = mine;
