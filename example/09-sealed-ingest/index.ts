@@ -17,17 +17,16 @@ const ben = ez.createUserKeys();
 publicKeys.set("ana", ana.publicKey);
 publicKeys.set("ben", ben.publicKey);
 
-// Server: an email from outside the app arrives at Ana's address. The server reads only what it
-// needs to route it, seals the rest to Ana's public key and keeps only the sealed bytes, the way
-// end-to-end encrypted mail services encrypt incoming mail on arrival.
+// Server: an email for Ana arrives; it's sealed to her public key at once, only the sealed bytes kept.
 // In a real app: never write the plain message to disk, queues or logs.
 function receive(userId: string, raw: string) {
-	const [headers = "", body = ""] = raw.split("\n\n");
-	const header = (name: string) =>
+	const [, headers = "", body = ""] =
+		/^([\s\S]*?)\r?\n\r?\n([\s\S]*)$/.exec(raw) ?? [];
+	const readHeader = (name: string) =>
 		new RegExp(`^${name}: (.+)$`, "m").exec(headers)?.[1] ?? "";
 	const email: InboundEmail = {
-		from: header("From"),
-		subject: header("Subject"),
+		from: readHeader("From"),
+		subject: readHeader("Subject"),
 		body,
 	};
 	const publicKey = publicKeys.get(userId);
@@ -38,7 +37,7 @@ function receive(userId: string, raw: string) {
 }
 receive(
 	"ana",
-	"From: reports@partner.example\nSubject: Your monthly report\n\nThe report is attached.",
+	"From: reports@partner.example\r\nSubject: Your monthly report\r\n\r\nThe report is attached.\r\n\r\nThanks.",
 );
 server.show();
 assert.ok(!server.dump().includes("monthly report"));
@@ -52,7 +51,7 @@ assert.deepEqual(emails, [
 	{
 		from: "reports@partner.example",
 		subject: "Your monthly report",
-		body: "The report is attached.",
+		body: "The report is attached.\r\n\r\nThanks.",
 	},
 ]);
 show("Ana's phone shows", emails);
