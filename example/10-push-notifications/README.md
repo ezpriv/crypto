@@ -2,7 +2,7 @@
 
 **Feature.** When Ben updates a shared record, Ana and Carla get a push that reads "Ben updated Meeting notes", while the server, Apple and Google only ever see "New activity". Behind that, Ben's app seals the text once per recipient with `sealForUser` (context `notification`). The push carries a generic fallback text plus the sealed bytes. The recipient's phone opens them with `openSealed` before showing the notification.
 
-**Why.** A notification's text is often the most sensitive part: who paid what, and where. Without sealing, it would pass in the clear through the server, APNs and FCM.
+**Why.** A notification's text is often the most sensitive part: who did what, and in which group. Without sealing, it would pass in the clear through the server, APNs and FCM.
 
 ## Flow
 

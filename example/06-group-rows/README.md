@@ -55,7 +55,7 @@ const record = JSON.parse(read(ez.decryptRow({ encrypted: data, groupKey: key, t
 - **Metadata stays visible:** who is in which group, how many rows, their sizes and when they were written. Pad values if sizes matter.
 - **The server can drop or replay a whole row.** Binding stops moving and editing, not deleting or restoring an old version of the same row.
 - **The app records which key version encrypted each row** (`keyVersion` here). The library doesn't ([08](../08-member-removal)).
-- **Server-side features that read values stop working:** search, totals, sorting by amount. They move to the phone.
+- **Server-side features that read values stop working:** search, totals, sorting by a field. They move to the phone.
 
 ## Run it
 

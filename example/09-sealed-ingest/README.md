@@ -1,6 +1,6 @@
 # 09 · Sealed ingest
 
-**Feature.** Data from outside the app (an email, a webhook, an import) reaches a user, and it shows up in their app as their own data. Behind that, the server reads only what it needs to route the item, seals the rest to the user's public key with `sealForUser` (context `inbound`), and keeps only the sealed bytes. Only the user's `key_A` opens it. End-to-end encrypted mail services encrypt incoming mail on arrival the same way.
+**Feature.** Data from outside the app (an email, a webhook, an import) reaches a user, and it shows up in their app as their own data. Behind that, the server seals the whole message to the user's public key with `sealForUser` (context `inbound`) as it arrives, and keeps only the sealed bytes. Only the user's `key_A` opens it. End-to-end encrypted mail services encrypt incoming mail on arrival the same way.
 
 **Why.** Some data reaches the app through the server first. Sealing it as soon as it arrives means the stored copy is unreadable to the server, to backups and to whoever breaches the database.
 
@@ -12,7 +12,6 @@ sequenceDiagram
     participant Server
     participant Phone as Ana's phone
     Ext->>Server: an email for Ana's address
-    Server->>Server: reads only what it needs to route it, in memory
     Server->>Server: sealForUser to Ana's public key, context inbound
     Server->>Server: stores the sealed bytes, drops the plain message
     Phone->>Server: get my inbox
