@@ -1,8 +1,8 @@
 # 10 · Push notifications
 
-**Feature.** When Ben adds an expense, Ana and Carla get a push that reads "Ben added Dinner, 42.00", while the server, Apple and Google only ever see "New activity". Behind that, Ben's app seals the text once per recipient with `sealForUser` (context `notification`). The push carries a generic fallback text plus the sealed bytes. The recipient's phone opens them with `openSealed` before showing the notification.
+**Feature.** When Ben updates a shared record, Ana and Carla get a push that reads "Ben updated Meeting notes", while the server, Apple and Google only ever see "New activity". Behind that, Ben's app seals the text once per recipient with `sealForUser` (context `notification`). The push carries a generic fallback text plus the sealed bytes. The recipient's phone opens them with `openSealed` before showing the notification.
 
-**Why.** A notification's text is often the most sensitive part: who paid what, and where. Without sealing, it would pass in the clear through the server, APNs and FCM.
+**Why.** A notification's text is often the most sensitive part: who did what, and in which group. Without sealing, it would pass in the clear through the server, APNs and FCM.
 
 ## Flow
 
@@ -19,7 +19,7 @@ sequenceDiagram
     Ana->>Ana: the notification extension reads key_A from the shared keychain
     Ana->>Ana: openSealed, context notification
     alt opened
-        Ana->>Ana: shows Ben added Dinner, 42.00
+        Ana->>Ana: shows Ben updated Meeting notes
     else cannot open
         Ana->>Ana: shows the fallback, New activity
     end
@@ -52,7 +52,7 @@ The notification code can't run JavaScript, so it uses the ports, tested against
 - The text exists in the clear only on the sender's and the recipient's phones.
 - The fallback text means a push still makes sense when it can't be opened (signed out, no key on this device yet).
 - Sealing adds 84 bytes before base64 (version byte, 48 bytes of box, the context header), well under APNs' and FCM's 4 KB.
-- The context is bound: a sealed bank movement ([09](../09-sealed-ingest)) can't be shown as a notification.
+- The context is bound: sealed inbound data ([09](../09-sealed-ingest)) can't be shown as a notification.
 
 ## Cons and limits
 

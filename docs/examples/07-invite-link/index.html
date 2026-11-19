@@ -39,7 +39,7 @@
 
 		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
 		<div class="prose">
-			<p><strong>What the user sees.</strong> A member shares a link to the group. Whoever opens it joins and sees the expenses, without the creator having to approve each person. Behind that, the link is <code>https://app.example.com/invite/&lt;token&gt;#k=&lt;group key&gt;</code>. Browsers never send the part after <code>#</code> (the fragment) to the server, so the server sees the token, never the key. The joiner's app reads the key from the fragment, checks it opens the rows, and seals it to its own public key with <code>sealGroupKey</code>.</p>
+			<p><strong>What the user sees.</strong> A member shares a link to the group. Whoever opens it joins and sees the group's shared data, without the creator having to approve each person. Behind that, the link is <code>https://app.example.com/invite/&lt;token&gt;#k=&lt;group key&gt;</code>. Browsers never send the part after <code>#</code> (the fragment) to the server, so the server sees the token, never the key. The joiner's app reads the key from the fragment, checks it opens the rows, and seals it to its own public key with <code>sealGroupKey</code>.</p>
 			<p><strong>Why.</strong> Sealing the key to a new member needs their public key, so an existing member would have to be online after they join. A link carries the key itself and works at once.</p>
 			
 		</div>
@@ -63,7 +63,7 @@
 const url = new URL(link);
 const groupKey = fromB64url(new URLSearchParams(url.hash.slice(1)).get(&quot;k&quot;) ?? &quot;&quot;);
 const { groupId, rows } = join(url.pathname, &quot;carla&quot;); // the server only ever sees this path
-ez.decryptRow({ encrypted, groupKey, table: &quot;expense&quot;, rowId }); // refused if the key was changed
+ez.decryptRow({ encrypted, groupKey, table: &quot;records&quot;, rowId }); // refused if the key was changed
 const sealed = ez.sealGroupKey({ groupKey, groupId, publicKey: carla.publicKey });</code></pre>
 <p>The server's request log holds <code>GET /invite/&lt;token&gt;</code>, never the key.</p>
 <div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>encryptRow</code>, <code>decryptRow</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr><tr><td><code>sealGroupKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>

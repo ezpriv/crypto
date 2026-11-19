@@ -47,7 +47,7 @@ const recoveryWrap = ez.wrapKey({ key: user.privateKey, wrappingKey: ez.keyFromW
 // A group and its rows.
 const groupKey = ez.newGroupKey();
 const forMember = ez.sealGroupKey({ groupKey, groupId, publicKey: memberPublicKey });
-const encrypted = ez.encryptRow({ value: bytes, groupKey, table: "expense", rowId });
+const encrypted = ez.encryptRow({ value: bytes, groupKey, table: "records", rowId });
 
 // On the server: seal something only the user can read.
 const sealed = ez.sealForUser({ value: bytes, context: "notification", publicKey: user.publicKey });

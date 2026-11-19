@@ -32,7 +32,7 @@ const v2 = ez.newGroupKey();
 for (const userId of ["ana", "ben"]) {
 	groupKeys.set(`${groupId}/2/${userId}`, ez.sealGroupKey({ groupKey: v2, groupId, publicKey: people[userId].publicKey }));
 }
-expenses.set(rowId, { keyVersion: 2, data: ez.encryptRow({ value, groupKey: v2, table: "expense", rowId }) });
+records.set(rowId, { keyVersion: 2, data: ez.encryptRow({ value, groupKey: v2, table: "records", rowId }) });
 
 // any member: the key for a row is the one with the row's keyVersion
 const groupKey = keys.get(row.keyVersion);

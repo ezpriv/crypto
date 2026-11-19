@@ -40,12 +40,12 @@ export default {
 		// A message: a packet travels from one actor to another.
 		{ title: "Sign up", from: "phone", to: "server", carry: "cipher:2 wraps", text: "…", add: { server: ["cipher:2 wraps"] } },
 		// A refused message: the packet stops short and turns red. `attack` tags it in the step list.
-		{ title: "Moved row", attack: true, from: "server", to: "phone", carry: "cipher:exp_1", refused: "cannot decrypt", text: "…" },
+		{ title: "Moved row", attack: true, from: "server", to: "phone", carry: "cipher:rec_1", refused: "cannot decrypt", text: "…" },
 	],
 };
 ```
 
-- `kind` is one of `phone`, `computer`, `server`, `cloud`, `bank`, `authenticator`, `store`, `attacker`.
+- `kind` is one of `phone`, `computer`, `server`, `cloud`, `authenticator`, `store`, `attacker`.
 - An item is `tone:label`, where tone is `secret`, `public`, `cipher`, `plain`, `session` or `danger`. `add` puts items on an actor after the step, `drop` removes them by label.
 
 ## How it's served

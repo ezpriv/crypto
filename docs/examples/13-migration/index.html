@@ -44,7 +44,7 @@
 			
 		</div>
 		<div class="two-col">
-			<div class="pros"><h3>Pros</h3><ul><li>No group is ever half migrated: either every row is encrypted, or nothing changed.</li><li>A row added during the migration makes the upload fail instead of being lost. The app encrypts again.</li><li>Members migrate at their own pace. Whoever updates later gets the key from any member who has it.</li><li>Row ids stay the same, so links, claims and references keep working.</li></ul></div>
+			<div class="pros"><h3>Pros</h3><ul><li>No group is ever half migrated: either every row is encrypted, or nothing changed.</li><li>A row added during the migration makes the upload fail instead of being lost. The app encrypts again.</li><li>Members migrate at their own pace. Whoever updates later gets the key from any member who has it.</li><li>Row ids stay the same, so links, assignments and references keep working.</li></ul></div>
 			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>The server can't check the content.</strong> It checks ids and counts, not that each ciphertext holds the right row. A buggy client could upload garbage, and once the plain copies are cleared, nobody can fix it. Have the app decrypt its own upload before sending it.</li><li><strong>Old backups still hold the plain rows</strong> until they expire. Say so to users, and shorten backup retention for those tables.</li><li><strong>A member on an old app version</strong> can't read the group after the switch. Ask them to update.</li><li><strong>Until another member's app is online,</strong> a member who updated later can't read the group.</li><li><strong>An active server</strong> could claim a fake member needs the key and receive it (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>). Show members who is getting the key.</li></ul></div>
 		</div>
 
@@ -59,7 +59,7 @@
 			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/13-migration/index.ts"><code>example/13-migration/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
 			<pre><code class="language-ts">// Ana&#x27;s app
 const rows = new Map(plainRows.map(([rowId, fields]) =&gt;
-	[rowId, ez.encryptRow({ value: text(JSON.stringify(fields)), groupKey, table: &quot;expense&quot;, rowId })]));
+	[rowId, ez.encryptRow({ value: text(JSON.stringify(fields)), groupKey, table: &quot;records&quot;, rowId })]));
 
 // server: refuse unless every plain row has an encrypted counterpart
 if (ids.length !== rows.size || ids.some((id) =&gt; !rows.has(id))) throw new Error(&quot;rows changed, encrypt again&quot;);
@@ -76,7 +76,7 @@ node example/13-migration/index.ts</code></pre>
 			<a class="button primary" href="https://github.com/ezpriv/crypto/blob/main/example/13-migration/index.ts">Full example on GitHub</a>
 			<a class="button" href="https://github.com/ezpriv/crypto/tree/main/example/13-migration">README with the sequence diagram</a>
 		</div>
-		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/12-live-table-link/">← 12 · Live receipt table by link</a><a class="button" href="/examples/">All examples →</a></nav>
+		<nav class="pager" aria-label="Examples"><a class="button" href="/examples/12-live-table-link/">← 12 · Live list by link</a><a class="button" href="/examples/">All examples →</a></nav>
 	</main>
 	<footer class="site-footer">
 		<div class="inner">

@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>09 · Sealed ingest · ezpriv/crypto</title>
-	<meta name="description" content="The user forwards their bank&#x27;s notification emails to the app, and the movements show up in the app ready to split.">
+	<meta name="description" content="Data from outside the app (an email, a webhook, an import) reaches a user, and it shows up in their app as their own data.">
 	<meta name="theme-color" content="#0a0f1e">
 	<link rel="canonical" href="https://ezpriv.xyz/examples/09-sealed-ingest/">
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -29,7 +29,7 @@
 		<div class="crumbs"><a href="/examples/">Examples</a> / 09</div>
 		<span class="eyebrow">Example 09</span>
 		<h1>Sealed ingest</h1>
-		<p class="lead">The user forwards their bank's notification emails to the app, and the movements show up in the app ready to split.</p>
+		<p class="lead">Data from outside the app (an email, a webhook, an import) reaches a user, and it shows up in their app as their own data.</p>
 		<div class="links">
 			<a class="button" href="#in-practice">In practice</a>
 			<a class="button" href="#flow">Step-by-step flow</a>
@@ -39,13 +39,13 @@
 
 		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
 		<div class="prose">
-			<p><strong>What the user sees.</strong> The user forwards their bank's notification emails to the app, and the movements show up in the app ready to split. Behind that, the server parses each email in memory, seals the result to the user's public key with <code>sealForUser</code> (context <code>movement</code>), and keeps only the sealed bytes. Only the user's <code>key_A</code> opens it.</p>
-			<p><strong>Why.</strong> Some data reaches the app through the server first: emails, webhooks, imports. Sealing it as soon as it arrives means the stored copy is unreadable to the server, to backups and to whoever breaches the database.</p>
+			<p><strong>What the user sees.</strong> Data from outside the app (an email, a webhook, an import) reaches a user, and it shows up in their app as their own data. Behind that, the server seals the whole message to the user's public key with <code>sealForUser</code> (context <code>inbound</code>) as it arrives, and keeps only the sealed bytes. Only the user's <code>key_A</code> opens it. End-to-end encrypted mail services encrypt incoming mail on arrival the same way.</p>
+			<p><strong>Why.</strong> Some data reaches the app through the server first. Sealing it as soon as it arrives means the stored copy is unreadable to the server, to backups and to whoever breaches the database.</p>
 			
 		</div>
 		<div class="two-col">
-			<div class="pros"><h3>Pros</h3><ul><li>Anyone with the public key can seal, so the server can encrypt for a user who is offline, with no key of its own.</li><li>The stored copy, its backups and replicas are unreadable without <code>key_A</code>.</li><li>The context is bound: a sealed movement can't be passed off as a notification (<a href="/examples/10-push-notifications/">10</a>) or anything else.</li></ul></div>
-			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>The server reads the email while parsing it.</strong> Sealing protects what is stored, not the moment of ingest. Keep the parsing in memory, and out of logs, queues and error reports.</li><li><strong>Sealed boxes are anonymous.</strong> The phone can't tell who sealed a movement: anyone who can write to the inbox could add a fake one (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>). Show ingested items as suggestions for the user to confirm.</li><li><strong>The server learns the metadata:</strong> that a movement arrived for this user, when, and its size.</li><li><strong>No forward secrecy.</strong> Whoever gets <code>key_A</code> later opens every movement sealed to it (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li></ul></div>
+			<div class="pros"><h3>Pros</h3><ul><li>Anyone with the public key can seal, so the server can encrypt for a user who is offline, with no key of its own.</li><li>The stored copy, its backups and replicas are unreadable without <code>key_A</code>.</li><li>The context is bound: inbound data can't be passed off as a notification (<a href="/examples/10-push-notifications/">10</a>) or anything else.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>The server sees the data as it arrives.</strong> Sealing protects what is stored, not the moment of ingest. Keep the handling in memory, and out of logs, queues and error reports.</li><li><strong>Sealed boxes are anonymous.</strong> The phone can't tell who sealed an item: anyone who can write to the inbox could add a fake one (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>). Treat inbound items as unverified until the user or a signature confirms them.</li><li><strong>The server learns the metadata:</strong> that something arrived for this user, when, from where, and its size.</li><li><strong>No forward secrecy.</strong> Whoever gets <code>key_A</code> later opens every item sealed to it (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li></ul></div>
 		</div>
 
 		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
@@ -57,11 +57,11 @@
 		<h2 id="code"><span class="section-tag">3</span>Code</h2>
 		<div class="prose">
 			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/09-sealed-ingest/index.ts"><code>example/09-sealed-ingest/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
-			<pre><code class="language-ts">// server
-const sealed = ez.sealForUser({ value: text(JSON.stringify(movement)), context: &quot;movement&quot;, publicKey });
+			<pre><code class="language-ts">// server, on arrival: the raw message, as is
+const sealed = ez.sealForUser({ value: text(raw), context: &quot;inbound&quot;, publicKey });
 
-// Ana&#x27;s phone
-const movement = JSON.parse(read(ez.openSealed({ sealed, context: &quot;movement&quot;, keyPair: ana })));</code></pre>
+// Ana&#x27;s phone: open, then parse
+const email = parseEmail(read(ez.openSealed({ sealed, context: &quot;inbound&quot;, keyPair: ana })));</code></pre>
 <div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>sealForUser</code>, <code>openSealed</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
 			<h3>Run it</h3>
 			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto

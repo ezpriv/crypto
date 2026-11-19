@@ -75,7 +75,6 @@ const KINDS = [
 	"computer",
 	"server",
 	"cloud",
-	"bank",
 	"authenticator",
 	"store",
 	"attacker",

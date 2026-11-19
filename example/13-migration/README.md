@@ -33,7 +33,7 @@ From [`index.ts`](index.ts):
 ```ts
 // Ana's app
 const rows = new Map(plainRows.map(([rowId, fields]) =>
-	[rowId, ez.encryptRow({ value: text(JSON.stringify(fields)), groupKey, table: "expense", rowId })]));
+	[rowId, ez.encryptRow({ value: text(JSON.stringify(fields)), groupKey, table: "records", rowId })]));
 
 // server: refuse unless every plain row has an encrypted counterpart
 if (ids.length !== rows.size || ids.some((id) => !rows.has(id))) throw new Error("rows changed, encrypt again");
@@ -53,7 +53,7 @@ ez.sealGroupKey({ groupKey, groupId, publicKey: bensPublicKey });
 - No group is ever half migrated: either every row is encrypted, or nothing changed.
 - A row added during the migration makes the upload fail instead of being lost. The app encrypts again.
 - Members migrate at their own pace. Whoever updates later gets the key from any member who has it.
-- Row ids stay the same, so links, claims and references keep working.
+- Row ids stay the same, so links, assignments and references keep working.
 
 ## Cons and limits
 

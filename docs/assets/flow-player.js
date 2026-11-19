@@ -15,7 +15,6 @@ const KIND_COLOR = {
 	computer: "#7aa7ff",
 	server: "#3dd6a5",
 	cloud: "#b39dff",
-	bank: "#f5b14c",
 	authenticator: "#f5b14c",
 	store: "#b39dff",
 	attacker: "#ff6b6b",
@@ -25,7 +24,6 @@ const TOP = {
 	computer: 1.95,
 	server: 1.45,
 	cloud: 1.6,
-	bank: 1.65,
 	authenticator: 1.55,
 	store: 1.35,
 	attacker: 1.65,
@@ -158,14 +156,6 @@ function buildActor(kind, color) {
 		]) {
 			body(new THREE.IcosahedronGeometry(r, 1), y, x);
 		}
-	} else if (kind === "bank") {
-		body(new THREE.BoxGeometry(1.5, 0.12, 0.9), 0.06);
-		for (const x of [-0.5, -0.17, 0.17, 0.5]) {
-			body(new THREE.CylinderGeometry(0.08, 0.08, 0.9, 12), 0.57, x);
-		}
-		const roof = body(new THREE.ConeGeometry(1.0, 0.5, 4), 1.27);
-		roof.rotation.y = Math.PI / 4;
-		roof.scale.z = 0.62;
 	} else if (kind === "authenticator") {
 		body(new THREE.BoxGeometry(0.5, 0.9, 0.18), 0.6);
 		body(new THREE.TorusGeometry(0.22, 0.05, 10, 32), 1.25);

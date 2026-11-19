@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>12 · Live receipt table by link · ezpriv/crypto</title>
-	<meta name="description" content="At a restaurant, one person scans the receipt and shares a link.">
+	<title>12 · Live list by link · ezpriv/crypto</title>
+	<meta name="description" content="One person shares a list by link (tasks, a sign-up sheet, anything with items).">
 	<meta name="theme-color" content="#0a0f1e">
 	<link rel="canonical" href="https://ezpriv.xyz/examples/12-live-table-link/">
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -28,8 +28,8 @@
 	<main>
 		<div class="crumbs"><a href="/examples/">Examples</a> / 12</div>
 		<span class="eyebrow">Example 12</span>
-		<h1>Live receipt table by link</h1>
-		<p class="lead">At a restaurant, one person scans the receipt and shares a link.</p>
+		<h1>Live list by link</h1>
+		<p class="lead">One person shares a list by link (tasks, a sign-up sheet, anything with items).</p>
 		<div class="links">
 			<a class="button" href="#in-practice">In practice</a>
 			<a class="button" href="#flow">Step-by-step flow</a>
@@ -39,13 +39,13 @@
 
 		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
 		<div class="prose">
-			<p><strong>What the user sees.</strong> At a restaurant, one person scans the receipt and shares a link. Friends open it, tap the items they had, and everyone sees the claims appear live and their own total. Behind that, the receipt gets its own key, which travels in the link's fragment like an invite (<a href="/examples/07-invite-link/">07</a>). Item names and prices are encrypted with <code>encryptRow</code> (table <code>receipt_item</code>). Claims (item id ↔ user id) stay plain, so claiming is an ordinary write with no cryptography.</p>
-			<p><strong>Why.</strong> Splitting a bill needs to be instant and work for guests who just opened a link. Encrypting what was ordered and its price keeps the receipt private, and keeping claims plain keeps the live part simple and fast.</p>
+			<p><strong>What the user sees.</strong> One person shares a list by link (tasks, a sign-up sheet, anything with items). Whoever opens it sees the items, takes some, and everyone sees who took what, live. Behind that, the list gets its own key, which travels in the link's fragment like an invite (<a href="/examples/07-invite-link/">07</a>). Item contents are encrypted with <code>encryptRow</code> (table <code>list_item</code>). Assignments (item id ↔ user id) stay plain, so taking an item is an ordinary write with no cryptography.</p>
+			<p><strong>Why.</strong> Collaborative lists need to be instant and work for people who just opened a link. Encrypting the items keeps the content private, and keeping assignments plain keeps the live part simple and fast.</p>
 			
 		</div>
 		<div class="two-col">
-			<div class="pros"><h3>Pros</h3><ul><li>Guests read the receipt with nothing but the link, and claiming is a plain realtime write.</li><li>The server never sees what was ordered or what it cost.</li><li>Items are bound to their ids: swapping two items' ciphertexts, to change who pays what, is refused.</li><li>One key per receipt: a leaked link exposes one meal, not the group.</li></ul></div>
-			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>Claims are visible to the server:</strong> who claimed how many items, and when. That's the price of claiming without cryptography.</li><li><strong>Anyone with the link can claim,</strong> and edit claims, unless the server requires a sign-in for writes. Read access is the key, write access is the server's.</li><li><strong>The server can drop or replay claims,</strong> and could show different claims to different people. Totals are as honest as the server.</li><li><strong>The link is the key,</strong> with the same exposure as an invite link (<a href="/examples/07-invite-link/">07</a>), and the web page reading it is served by the server.</li></ul></div>
+			<div class="pros"><h3>Pros</h3><ul><li>Anyone with the link reads the list, and taking an item is a plain realtime write.</li><li>The server never sees what the items say.</li><li>Items are bound to their ids: swapping two items' ciphertexts, to change who does what, is refused.</li><li>One key per list: a leaked link exposes one list, not the user's other data.</li></ul></div>
+			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>Assignments are visible to the server:</strong> who took how many items, and when. That's the cost of assigning without cryptography.</li><li><strong>Anyone with the link can take items,</strong> and change assignments, unless the server requires a sign-in for writes. Read access is the key, write access is the server's.</li><li><strong>The server can drop or replay assignments,</strong> and could show different ones to different people. Totals are as honest as the server.</li><li><strong>The link is the key,</strong> with the same exposure as an invite link (<a href="/examples/07-invite-link/">07</a>), and the web page reading it is served by the server.</li></ul></div>
 		</div>
 
 		<h2 id="flow"><span class="section-tag">2</span>Step-by-step flow</h2>
@@ -57,12 +57,12 @@
 		<h2 id="code"><span class="section-tag">3</span>Code</h2>
 		<div class="prose">
 			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/12-live-table-link/index.ts"><code>example/12-live-table-link/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
-			<pre><code class="language-ts">const tableKey = ez.newGroupKey();
-const data = ez.encryptRow({ value: text(JSON.stringify(item)), groupKey: tableKey, table: &quot;receipt_item&quot;, rowId: itemId });
-const link = `https://app.example.com/t/${tableId}#k=${toB64url(tableKey)}`;
+			<pre><code class="language-ts">const listKey = ez.newGroupKey();
+const data = ez.encryptRow({ value: text(JSON.stringify(item)), groupKey: listKey, table: &quot;list_item&quot;, rowId: itemId });
+const link = `https://app.example.com/l/${listId}#k=${toB64url(listKey)}`;
 
-// claiming: no cryptography
-claims.set(&quot;item_1&quot;, &quot;ben&quot;);</code></pre>
+// taking an item: no cryptography
+assignments.set(&quot;item_1&quot;, &quot;ben&quot;);</code></pre>
 <div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>newGroupKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#primitives">Primitives</a></td></tr><tr><td><code>encryptRow</code>, <code>decryptRow</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
 			<h3>Run it</h3>
 			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto

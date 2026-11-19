@@ -16,20 +16,20 @@ const server = createServer();
 const invites = server.table<string>("invites"); // token → groupId
 const members = server.table<string[]>("members"); // groupId → userIds
 const groupKeys = server.table<Uint8Array>("group_keys"); // `${groupId}/${userId}` → sealed
-const expenses = server.table<Uint8Array>("expenses"); // rowId → encrypted
+const records = server.table<Uint8Array>("records"); // rowId → encrypted
 const requestLog: string[] = [];
 
-// Ana's group already exists (see 06), with one expense.
-const groupId = "grp_trip";
+// Ana's group already exists (see 06), with one shared record.
+const groupId = "grp_team";
 const groupKey = ez.newGroupKey();
 members.set(groupId, ["ana"]);
-expenses.set(
-	"exp_1",
+records.set(
+	"rec_1",
 	ez.encryptRow({
-		value: text("Dinner, 42.00"),
+		value: text("Meeting notes"),
 		groupKey,
-		table: "expense",
-		rowId: "exp_1",
+		table: "records",
+		rowId: "rec_1",
 	}),
 );
 
@@ -46,7 +46,7 @@ function join(path: string, userId: string) {
 	const id = invites.get(path.split("/").pop() ?? "");
 	assert.ok(id, "unknown invite");
 	members.get(id)?.push(userId);
-	return { groupId: id, rows: [...expenses] };
+	return { groupId: id, rows: [...records] };
 }
 
 // Carla's phone or browser opens the link, and the app reads the key from the fragment.
@@ -59,9 +59,9 @@ const joined = join(url.pathname, "carla");
 
 // Before keeping the key, check it opens the group's rows: a changed link fails here.
 const readRow = (key: Uint8Array, [rowId, encrypted]: [string, Uint8Array]) =>
-	read(ez.decryptRow({ encrypted, groupKey: key, table: "expense", rowId }));
+	read(ez.decryptRow({ encrypted, groupKey: key, table: "records", rowId }));
 const rows = joined.rows.map((row) => readRow(keyFromLink, row));
-assert.deepEqual(rows, ["Dinner, 42.00"]);
+assert.deepEqual(rows, ["Meeting notes"]);
 
 // Carla seals the key to herself, so her other devices get it like any member's.
 groupKeys.set(

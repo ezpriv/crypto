@@ -169,7 +169,7 @@ import type { Crypto, KeyPair, LinkRequest, PasswordParams, Sodium } from "@ezpr
 
 VERSION; // 1: first byte of every ciphertext and first field of every frame
 DEFAULT_PASSWORD_PARAMS; // { opsLimit: 3, memLimit: 64 * 1024 * 1024 }
-frame(["1", "ezpriv/row", "expense", "42"]); // "1:1,10:ezpriv/row,7:expense,2:42,"
+frame(["1", "ezpriv/row", "records", "42"]); // "1:1,10:ezpriv/row,7:records,2:42,"
 
 interface KeyPair { publicKey: Uint8Array; privateKey: Uint8Array }
 interface LinkRequest extends KeyPair { secret: Uint8Array }
