@@ -75,15 +75,15 @@ assign("item_2", "carla");
 
 // Each phone adds up its own share from the decrypted data.
 const bensView = openList(link);
-const hours = (view: Map<string, Item>, userId: string) =>
+const sumHours = (view: Map<string, Item>, userId: string) =>
 	[...assignments]
 		.filter(([, by]) => by === userId)
 		.reduce((sum, [itemId]) => sum + (view.get(itemId)?.hours ?? 0), 0);
-assert.equal(hours(bensView, "ben"), 5);
-assert.equal(hours(openList(link), "carla"), 1);
+assert.equal(sumHours(bensView, "ben"), 5);
+assert.equal(sumHours(openList(link), "carla"), 1);
 show("Ben's phone shows", {
 	items: bensView,
-	bensHours: hours(bensView, "ben"),
+	bensHours: sumHours(bensView, "ben"),
 });
 server.show();
 
