@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>10 · Push notifications · ezpriv/crypto</title>
-	<meta name="description" content="When Ben adds an expense, Ana and Carla get a push that reads &quot;Ben added Dinner, 42.00&quot;, while the server, Apple and Google only ever see &quot;New activity&quot;.">
+	<meta name="description" content="When Ben updates a shared record, Ana and Carla get a push that reads &quot;Ben updated Meeting notes&quot;, while the server, Apple and Google only ever see &quot;New activity&quot;.">
 	<meta name="theme-color" content="#0a0f1e">
 	<link rel="canonical" href="https://ezpriv.xyz/examples/10-push-notifications/">
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -29,7 +29,7 @@
 		<div class="crumbs"><a href="/examples/">Examples</a> / 10</div>
 		<span class="eyebrow">Example 10</span>
 		<h1>Push notifications</h1>
-		<p class="lead">When Ben adds an expense, Ana and Carla get a push that reads "Ben added Dinner, 42.00", while the server, Apple and Google only ever see "New activity".</p>
+		<p class="lead">When Ben updates a shared record, Ana and Carla get a push that reads "Ben updated Meeting notes", while the server, Apple and Google only ever see "New activity".</p>
 		<div class="links">
 			<a class="button" href="#in-practice">In practice</a>
 			<a class="button" href="#flow">Step-by-step flow</a>
@@ -39,12 +39,12 @@
 
 		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
 		<div class="prose">
-			<p><strong>What the user sees.</strong> When Ben adds an expense, Ana and Carla get a push that reads "Ben added Dinner, 42.00", while the server, Apple and Google only ever see "New activity". Behind that, Ben's app seals the text once per recipient with <code>sealForUser</code> (context <code>notification</code>). The push carries a generic fallback text plus the sealed bytes. The recipient's phone opens them with <code>openSealed</code> before showing the notification.</p>
+			<p><strong>What the user sees.</strong> When Ben updates a shared record, Ana and Carla get a push that reads "Ben updated Meeting notes", while the server, Apple and Google only ever see "New activity". Behind that, Ben's app seals the text once per recipient with <code>sealForUser</code> (context <code>notification</code>). The push carries a generic fallback text plus the sealed bytes. The recipient's phone opens them with <code>openSealed</code> before showing the notification.</p>
 			<p><strong>Why.</strong> A notification's text is often the most sensitive part: who paid what, and where. Without sealing, it would pass in the clear through the server, APNs and FCM.</p>
 			
 		</div>
 		<div class="two-col">
-			<div class="pros"><h3>Pros</h3><ul><li>The text exists in the clear only on the sender's and the recipient's phones.</li><li>The fallback text means a push still makes sense when it can't be opened (signed out, no key on this device yet).</li><li>Sealing adds 84 bytes before base64 (version byte, 48 bytes of box, the context header), well under APNs' and FCM's 4 KB.</li><li>The context is bound: a sealed bank movement (<a href="/examples/09-sealed-ingest/">09</a>) can't be shown as a notification.</li></ul></div>
+			<div class="pros"><h3>Pros</h3><ul><li>The text exists in the clear only on the sender's and the recipient's phones.</li><li>The fallback text means a push still makes sense when it can't be opened (signed out, no key on this device yet).</li><li>Sealing adds 84 bytes before base64 (version byte, 48 bytes of box, the context header), well under APNs' and FCM's 4 KB.</li><li>The context is bound: sealed inbound data (<a href="/examples/09-sealed-ingest/">09</a>) can't be shown as a notification.</li></ul></div>
 			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>Sealed boxes are anonymous.</strong> The recipient can't tell who sealed a notification, so anyone with the public key could push a fake one (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>). Keep notifications informative only, and show the real data from the group's rows.</li><li><strong>The sender seals once per recipient,</strong> using public keys from the server. An active server can hand out its own key in place of a member's (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li><li><strong>Metadata is visible:</strong> who notifies whom, when, and the payload size. Pad the text to a few fixed sizes if that matters.</li><li><strong>iOS needs <code>mutable-content</code></strong> and a Notification Service Extension. Its key must be readable while the phone is locked, which is a trade-off (<a href="/examples/05-device-and-synced-copies/">05</a>).</li></ul></div>
 		</div>
 

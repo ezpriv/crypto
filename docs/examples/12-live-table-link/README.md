@@ -1,4 +1,4 @@
-# 12 · Live receipt table by link
+# 12 · Live list by link
 
 This folder is published at **[https://ezpriv.xyz/examples/12-live-table-link/](https://ezpriv.xyz/examples/12-live-table-link/)**.
 

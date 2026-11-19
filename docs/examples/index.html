@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Examples · ezpriv/crypto</title>
-	<meta name="description" content="Thirteen runnable examples of @ezpriv/crypto in an expense-sharing app, each with an explanation, an animated flow and the code.">
+	<meta name="description" content="Thirteen runnable examples of @ezpriv/crypto, each with an explanation, an animated flow and the code.">
 	<meta name="theme-color" content="#0a0f1e">
 	<link rel="canonical" href="https://ezpriv.xyz/examples/">
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -27,20 +27,20 @@
 	<main>
 		<span class="eyebrow">Examples</span>
 		<h1>Every use case, end to end</h1>
-		<p class="lead">Thirteen runnable examples from an expense-sharing app: users, groups, expenses, bank movements, receipt tables, a phone app and a web version. Each page explains the feature, animates who holds what at every step, and shows the code. Everything outside the library (server, keychain, WebAuthn, camera, push) is simulated in-process.</p>
+		<p class="lead">Thirteen runnable examples from a typical end-to-end encrypted app: users with their own data, groups with shared data, data that arrives from outside, lists shared by link, a phone app and a web version. Each page explains the feature, animates who holds what at every step, and shows the code. Everything outside the library (server, keychain, WebAuthn, camera, push) is simulated in-process.</p>
 		<div class="grid">
 			<a class="card" href="/examples/01-account-setup/"><span class="num">01</span><h3>Account setup</h3><p>The user signs up with an email and a password, and writes down 12 recovery words shown once.</p><span class="fns">DEFAULT_PASSWORD_PARAMS, createUserKeys, keyFromWords, newRecoveryWords, newSalt, passwordKeys, wrapKey</span></a>
 			<a class="card" href="/examples/02-unlock-with-password/"><span class="num">02</span><h3>Unlock with a password</h3><p>On a new phone, the user types the email and password they signed up with and sees their data.</p><span class="fns">openSealed, passwordKeys, sealForUser, unwrapKey</span></a>
 			<a class="card" href="/examples/03-recover-with-words/"><span class="num">03</span><h3>Recover with the 12 words</h3><p>A user who forgot their password types the 12 recovery words, chooses a new password and is back in, with all their data.</p><span class="fns">keyFromWords, newSalt, openSealed, passwordKeys, sealForUser, unwrapKey, wrapKey</span></a>
 			<a class="card" href="/examples/04-passkey-prf/"><span class="num">04</span><h3>Unlock with a passkey (PRF)</h3><p>Optional: the user adds a passkey, and later unlocks with Face ID, Touch ID or a security key instead of typing the password.</p><span class="fns">keyFromPrf, unwrapKey, wrapKey</span></a>
 			<a class="card" href="/examples/05-device-and-synced-copies/"><span class="num">05</span><h3>Device and synced copies of <code>key_A</code></h3><p>After unlocking once, the user isn't asked for the password again on that device, and often not on their next phone either.</p><span class="fns"></span></a>
-			<a class="card" href="/examples/06-group-rows/"><span class="num">06</span><h3>Group rows</h3><p>Users share a group (a trip, a flat) and add expenses that every member sees, while the server stores only ciphertexts.</p><span class="fns">decryptRow, encryptRow, newGroupKey, openGroupKey, sealGroupKey</span></a>
+			<a class="card" href="/examples/06-group-rows/"><span class="num">06</span><h3>Group rows</h3><p>Users share a group (a team, a family, a project) and add shared records that every member sees, while the server stores only ciphertexts.</p><span class="fns">decryptRow, encryptRow, newGroupKey, openGroupKey, sealGroupKey</span></a>
 			<a class="card" href="/examples/07-invite-link/"><span class="num">07</span><h3>Invite link</h3><p>A member shares a link to the group.</p><span class="fns">decryptRow, encryptRow, sealGroupKey</span></a>
 			<a class="card" href="/examples/08-member-removal/"><span class="num">08</span><h3>Removing a member</h3><p>A member leaves the group or is removed, and from then on can't read what the group adds.</p><span class="fns">decryptRow, encryptRow, newGroupKey, openGroupKey, sealGroupKey</span></a>
-			<a class="card" href="/examples/09-sealed-ingest/"><span class="num">09</span><h3>Sealed ingest</h3><p>The user forwards their bank's notification emails to the app, and the movements show up in the app ready to split.</p><span class="fns">openSealed, sealForUser</span></a>
-			<a class="card" href="/examples/10-push-notifications/"><span class="num">10</span><h3>Push notifications</h3><p>When Ben adds an expense, Ana and Carla get a push that reads "Ben added Dinner, 42.00", while the server, Apple and Google only ever see "New activity".</p><span class="fns">openSealed, sealForUser</span></a>
+			<a class="card" href="/examples/09-sealed-ingest/"><span class="num">09</span><h3>Sealed ingest</h3><p>Data from outside the app (an email, a webhook, an import) reaches a user, and it shows up in their app as their own data.</p><span class="fns">openSealed, sealForUser</span></a>
+			<a class="card" href="/examples/10-push-notifications/"><span class="num">10</span><h3>Push notifications</h3><p>When Ben updates a shared record, Ana and Carla get a push that reads "Ben updated Meeting notes", while the server, Apple and Google only ever see "New activity".</p><span class="fns">openSealed, sealForUser</span></a>
 			<a class="card" href="/examples/11-qr-sign-in/"><span class="num">11</span><h3>Sign in on a computer by QR code</h3><p>On the web version, the user scans a QR code with the phone, confirms, and the computer is signed in with all their data, without typing a password.</p><span class="fns">newLinkRequest, openLink, sealForLink</span></a>
-			<a class="card" href="/examples/12-live-table-link/"><span class="num">12</span><h3>Live receipt table by link</h3><p>At a restaurant, one person scans the receipt and shares a link.</p><span class="fns">decryptRow, encryptRow, newGroupKey</span></a>
+			<a class="card" href="/examples/12-live-table-link/"><span class="num">12</span><h3>Live list by link</h3><p>One person shares a list by link (tasks, a sign-up sheet, anything with items).</p><span class="fns">decryptRow, encryptRow, newGroupKey</span></a>
 			<a class="card" href="/examples/13-migration/"><span class="num">13</span><h3>Migrating existing plain rows</h3><p>An app that already has groups with plain data ships end-to-end encryption, and existing groups switch over without losing a row.</p><span class="fns">createUserKeys, decryptRow, encryptRow, newGroupKey, openGroupKey, sealGroupKey</span></a>
 		</div>
 		<h2>Run them</h2>

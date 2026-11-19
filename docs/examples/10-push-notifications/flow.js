@@ -18,9 +18,9 @@ export default {
 	],
 	steps: [
 		{
-			title: "Ben adds an expense",
+			title: "Ben updates a shared record",
 			at: "ben",
-			text: "Dinner, 42.00, in a group Ana is in (example 06).",
+			text: "Meeting notes, in a group Ana is in (example 06).",
 		},
 		{
 			title: "Seal the text for each recipient",
@@ -58,14 +58,14 @@ export default {
 			at: "ana",
 			call: 'openSealed(sealed, "notification", keyPair)',
 			text: "Swift (ports/swift) in the iOS extension, Kotlin (ports/kotlin) on Android, key_A from the shared keychain.",
-			add: { ana: ["plain:Ben added Dinner, 42.00"] },
+			add: { ana: ["plain:Ben updated Meeting notes"] },
 		},
 		{
 			title: "Passed off as a notification",
 			attack: true,
 			from: "push",
 			to: "ana",
-			carry: "cipher:a sealed bank movement",
+			carry: "cipher:sealed inbound data",
 			refused: "wrong context",
 			text: "The context is bound, so a value sealed for another purpose can't show as a push. The app shows the fallback.",
 		},

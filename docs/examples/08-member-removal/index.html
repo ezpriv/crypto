@@ -61,7 +61,7 @@
 for (const userId of [&quot;ana&quot;, &quot;ben&quot;]) {
 	groupKeys.set(`${groupId}/2/${userId}`, ez.sealGroupKey({ groupKey: v2, groupId, publicKey: people[userId].publicKey }));
 }
-expenses.set(rowId, { keyVersion: 2, data: ez.encryptRow({ value, groupKey: v2, table: &quot;expense&quot;, rowId }) });
+records.set(rowId, { keyVersion: 2, data: ez.encryptRow({ value, groupKey: v2, table: &quot;records&quot;, rowId }) });
 
 // any member: the key for a row is the one with the row&#x27;s keyVersion
 const groupKey = keys.get(row.keyVersion);</code></pre>

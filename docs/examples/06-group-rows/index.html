@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>06 · Group rows · ezpriv/crypto</title>
-	<meta name="description" content="Users share a group (a trip, a flat) and add expenses that every member sees, while the server stores only ciphertexts.">
+	<meta name="description" content="Users share a group (a team, a family, a project) and add shared records that every member sees, while the server stores only ciphertexts.">
 	<meta name="theme-color" content="#0a0f1e">
 	<link rel="canonical" href="https://ezpriv.xyz/examples/06-group-rows/">
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -29,7 +29,7 @@
 		<div class="crumbs"><a href="/examples/">Examples</a> / 06</div>
 		<span class="eyebrow">Example 06</span>
 		<h1>Group rows</h1>
-		<p class="lead">Users share a group (a trip, a flat) and add expenses that every member sees, while the server stores only ciphertexts.</p>
+		<p class="lead">Users share a group (a team, a family, a project) and add shared records that every member sees, while the server stores only ciphertexts.</p>
 		<div class="links">
 			<a class="button" href="#in-practice">In practice</a>
 			<a class="button" href="#flow">Step-by-step flow</a>
@@ -39,12 +39,12 @@
 
 		<h2 id="in-practice"><span class="section-tag">1</span>In practice</h2>
 		<div class="prose">
-			<p><strong>What the user sees.</strong> Users share a group (a trip, a flat) and add expenses that every member sees, while the server stores only ciphertexts. Behind that, the creator's phone makes a random group key and seals it to each member's public key. Every row is encrypted with <code>encryptRow</code>, bound to its table and row id, so the server can't move or alter a row without the change being refused.</p>
+			<p><strong>What the user sees.</strong> Users share a group (a team, a family, a project) and add shared records that every member sees, while the server stores only ciphertexts. Behind that, the creator's phone makes a random group key and seals it to each member's public key. Every row is encrypted with <code>encryptRow</code>, bound to its table and row id, so the server can't move or alter a row without the change being refused.</p>
 			<p><strong>Why.</strong> Shared data needs one key that several people hold, and the server must be able to store, sync and order rows without reading them.</p>
 			
 		</div>
 		<div class="two-col">
-			<div class="pros"><h3>Pros</h3><ul><li>The server stores and syncs rows it can't read. A leaked database shows ciphertexts.</li><li>A row is bound to its table and id: the server can't swap two rows, or pass an expense off as another table's row. A changed byte is refused too.</li><li>A sealed group key is bound to its group id.</li><li>Adding a member is one more sealed copy of the key. Nothing is re-encrypted.</li></ul></div>
+			<div class="pros"><h3>Pros</h3><ul><li>The server stores and syncs rows it can't read. A leaked database shows ciphertexts.</li><li>A row is bound to its table and id: the server can't swap two rows, or pass a record off as another table's row. A changed byte is refused too.</li><li>A sealed group key is bound to its group id.</li><li>Adding a member is one more sealed copy of the key. Nothing is re-encrypted.</li></ul></div>
 			<div class="cons"><h3>Cons and limits</h3><ul><li><strong>An active server can read group data.</strong> Sealed boxes are anonymous and public keys aren't signed, so a server could hand out its own public key in place of a member's and receive the group key, or seal a key it knows (<a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#limits">SPEC.md, Limits</a>).</li><li><strong>Metadata stays visible:</strong> who is in which group, how many rows, their sizes and when they were written. Pad values if sizes matter.</li><li><strong>The server can drop or replay a whole row.</strong> Binding stops moving and editing, not deleting or restoring an old version of the same row.</li><li><strong>The app records which key version encrypted each row</strong> (<code>keyVersion</code> here). The library doesn't (<a href="/examples/08-member-removal/">08</a>).</li><li><strong>Server-side features that read values stop working:</strong> search, totals, sorting by amount. They move to the phone.</li></ul></div>
 		</div>
 
@@ -59,11 +59,11 @@
 			<p>The key lines from <a href="https://github.com/ezpriv/crypto/blob/main/example/06-group-rows/index.ts"><code>example/06-group-rows/index.ts</code></a>. The full file runs every party in one process and ends with <code>node:assert</code> checks.</p>
 			<pre><code class="language-ts">const groupKey = ez.newGroupKey();
 const sealed = ez.sealGroupKey({ groupKey, groupId, publicKey: memberPublicKey }); // per member
-const data = ez.encryptRow({ value: text(JSON.stringify(expense)), groupKey, table: &quot;expense&quot;, rowId });
+const data = ez.encryptRow({ value: text(JSON.stringify(record)), groupKey, table: &quot;records&quot;, rowId });
 
 // on Ben&#x27;s phone
 const key = ez.openGroupKey({ sealed, groupId, keyPair: ben });
-const expense = JSON.parse(read(ez.decryptRow({ encrypted: data, groupKey: key, table: &quot;expense&quot;, rowId })));</code></pre>
+const record = JSON.parse(read(ez.decryptRow({ encrypted: data, groupKey: key, table: &quot;records&quot;, rowId })));</code></pre>
 <div class="table-wrap"><table><thead><tr><th>Function</th><th>Spec</th></tr></thead><tbody><tr><td><code>newGroupKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#primitives">Primitives</a></td></tr><tr><td><code>sealGroupKey</code>, <code>openGroupKey</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr><tr><td><code>encryptRow</code>, <code>decryptRow</code></td><td><a href="https://github.com/ezpriv/crypto/blob/main/SPEC.md#ciphertexts">Ciphertexts</a></td></tr></tbody></table></div>
 			<h3>Run it</h3>
 			<pre><code class="language-bash">git clone https://github.com/ezpriv/crypto.git &amp;&amp; cd crypto
