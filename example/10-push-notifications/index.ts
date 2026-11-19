@@ -25,9 +25,9 @@ for (const [userId, keys] of Object.entries(people))
 // The fallback text shows if the phone can't open the payload (no key yet, signed out).
 const fallback = { title: "New activity", body: "Open the app to see it" };
 
-// Ben's app adds an expense, then seals the notification text once per recipient. The server
+// Ben's app updates a shared record, then seals the notification text once per recipient. The server
 // only forwards the bytes, so it never sees the text.
-const message = { title: "Weekend trip", body: "Ben added Dinner, 42.00" };
+const message = { title: "Team space", body: "Ben updated Meeting notes" };
 for (const userId of ["ana", "carla"]) {
 	const publicKey = publicKeys.get(userId);
 	assert.ok(publicKey);
@@ -72,16 +72,16 @@ assert.deepEqual(display("carla", toCarla), message);
 // Someone else's notification shows only the fallback.
 assert.deepEqual(display("ben", toAna), fallback);
 
-// The context is bound: a sealed bank movement (see 09) can't be shown as a notification.
-const movement = ez.sealForUser({
+// The context is bound: a sealed inbound email (see 09) can't be shown as a notification.
+const inbound = ez.sealForUser({
 	value: text(JSON.stringify(message)),
-	context: "movement",
+	context: "inbound",
 	publicKey: people.ana.publicKey,
 });
 assert.throws(
 	() =>
 		ez.openSealed({
-			sealed: movement,
+			sealed: inbound,
 			context: "notification",
 			keyPair: people.ana,
 		}),

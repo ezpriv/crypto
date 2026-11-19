@@ -4,24 +4,32 @@ import { createServer, ez, read, show, text } from "../_shared/setup.ts";
 
 interface PlainRow {
 	groupId: string;
-	description: string;
-	amount: number;
+	title: string;
+	body: string;
 }
 type Upload = { sealedKey: Uint8Array; rows: Map<string, Uint8Array> };
 type Group = { members: string[]; encrypted: boolean };
 
 const server = createServer();
 const groups = server.table<Group>("groups");
-const plain = server.table<PlainRow>("expenses"); // rowId → plain columns
-const encrypted = server.table<Uint8Array>("expenses_encrypted"); // rowId →
+const plain = server.table<PlainRow>("records"); // rowId → plain columns
+const encrypted = server.table<Uint8Array>("records_encrypted"); // rowId →
 const groupKeys = server.table<Uint8Array>("group_keys"); // `${groupId}/${userId}` → sealed
 const publicKeys = server.table<Uint8Array>("public_keys"); // userId → public key
 
 // Before the app update: a group of two with plain rows.
-const groupId = "grp_trip";
+const groupId = "grp_team";
 groups.set(groupId, { members: ["ana", "ben"], encrypted: false });
-plain.set("exp_1", { groupId, description: "Dinner", amount: 4200 });
-plain.set("exp_2", { groupId, description: "Taxi", amount: 1500 });
+plain.set("rec_1", {
+	groupId,
+	title: "Meeting notes",
+	body: "Ship on Friday.",
+});
+plain.set("rec_2", {
+	groupId,
+	title: "Launch checklist",
+	body: "Docs, tests, release.",
+});
 
 // Server: POST /groups/<id>/encrypt. It can't read the upload, but it can check that every
 // plain row has an encrypted counterpart, with the same ids and count. Only then it switches,
@@ -60,7 +68,7 @@ function encryptAll(): Upload {
 		const value = text(JSON.stringify(fields));
 		rows.set(
 			rowId,
-			ez.encryptRow({ value, groupKey, table: "expense", rowId }),
+			ez.encryptRow({ value, groupKey, table: "records", rowId }),
 		);
 	}
 	return { sealedKey, rows };
@@ -69,13 +77,13 @@ function encryptAll(): Upload {
 // Ben, still on the old app, adds a plain row while Ana's app is encrypting. The counts
 // differ, so the server refuses the upload and nothing changes. Ana's app tries again.
 const early = encryptAll();
-plain.set("exp_3", { groupId, description: "Museum", amount: 3000 });
+plain.set("rec_3", { groupId, title: "Travel plan", body: "Flight at 9:40." });
 assert.throws(() => finishMigration(early), /rows changed/);
 assert.equal(plain.size, 3);
 assert.equal(encrypted.size, 0);
 finishMigration(encryptAll());
 assert.equal(plain.size, 0);
-assert.ok(!server.dump().includes("Dinner"));
+assert.ok(!server.dump().includes("Meeting notes"));
 // In a real app: from here on, old app versions get "please update" for this group.
 
 // Ben updates later: his app makes his key pair and publishes the public key. He has no
@@ -108,14 +116,14 @@ const rows = Object.fromEntries(
 		const row = { encrypted: data, groupKey: groupKeyForBen, rowId };
 		return [
 			rowId,
-			JSON.parse(read(ez.decryptRow({ ...row, table: "expense" }))),
+			JSON.parse(read(ez.decryptRow({ ...row, table: "records" }))),
 		];
 	}),
 );
 assert.deepEqual(rows, {
-	exp_1: { description: "Dinner", amount: 4200 },
-	exp_2: { description: "Taxi", amount: 1500 },
-	exp_3: { description: "Museum", amount: 3000 },
+	rec_1: { title: "Meeting notes", body: "Ship on Friday." },
+	rec_2: { title: "Launch checklist", body: "Docs, tests, release." },
+	rec_3: { title: "Travel plan", body: "Flight at 9:40." },
 });
 show("Ben's app shows", rows);
 server.show();

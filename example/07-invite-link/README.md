@@ -1,6 +1,6 @@
 # 07 · Invite link
 
-**Feature.** A member shares a link to the group. Whoever opens it joins and sees the expenses, without the creator having to approve each person. Behind that, the link is `https://app.example.com/invite/<token>#k=<group key>`. Browsers never send the part after `#` (the fragment) to the server, so the server sees the token, never the key. The joiner's app reads the key from the fragment, checks it opens the rows, and seals it to its own public key with `sealGroupKey`.
+**Feature.** A member shares a link to the group. Whoever opens it joins and sees the group's shared data, without the creator having to approve each person. Behind that, the link is `https://app.example.com/invite/<token>#k=<group key>`. Browsers never send the part after `#` (the fragment) to the server, so the server sees the token, never the key. The joiner's app reads the key from the fragment, checks it opens the rows, and seals it to its own public key with `sealGroupKey`.
 
 **Why.** Sealing the key to a new member needs their public key, so an existing member would have to be online after they join. A link carries the key itself and works at once.
 
@@ -33,7 +33,7 @@ const link = `https://app.example.com/invite/${token}#k=${toB64url(groupKey)}`;
 const url = new URL(link);
 const groupKey = fromB64url(new URLSearchParams(url.hash.slice(1)).get("k") ?? "");
 const { groupId, rows } = join(url.pathname, "carla"); // the server only ever sees this path
-ez.decryptRow({ encrypted, groupKey, table: "expense", rowId }); // refused if the key was changed
+ez.decryptRow({ encrypted, groupKey, table: "records", rowId }); // refused if the key was changed
 const sealed = ez.sealGroupKey({ groupKey, groupId, publicKey: carla.publicKey });
 ```
 

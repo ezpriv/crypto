@@ -1,6 +1,6 @@
 # 06 · Group rows
 
-**Feature.** Users share a group (a trip, a flat) and add expenses that every member sees, while the server stores only ciphertexts. Behind that, the creator's phone makes a random group key and seals it to each member's public key. Every row is encrypted with `encryptRow`, bound to its table and row id, so the server can't move or alter a row without the change being refused.
+**Feature.** Users share a group (a team, a family, a project) and add shared records that every member sees, while the server stores only ciphertexts. Behind that, the creator's phone makes a random group key and seals it to each member's public key. Every row is encrypted with `encryptRow`, bound to its table and row id, so the server can't move or alter a row without the change being refused.
 
 **Why.** Shared data needs one key that several people hold, and the server must be able to store, sync and order rows without reading them.
 
@@ -14,7 +14,7 @@ sequenceDiagram
     Ana->>Server: get the public keys of Ana and Ben
     Ana->>Ana: newGroupKey
     Ana->>Server: sealGroupKey to each member, one row per member
-    Ana->>Ana: encryptRow per expense, table expense and its row id
+    Ana->>Ana: encryptRow per record, table records and its row id
     Ana->>Server: rows: id, groupId, keyVersion 1, ciphertext
     Ben->>Server: get my sealed group key and the rows
     Server-->>Ben: sealed key and ciphertexts
@@ -29,11 +29,11 @@ From [`index.ts`](index.ts):
 ```ts
 const groupKey = ez.newGroupKey();
 const sealed = ez.sealGroupKey({ groupKey, groupId, publicKey: memberPublicKey }); // per member
-const data = ez.encryptRow({ value: text(JSON.stringify(expense)), groupKey, table: "expense", rowId });
+const data = ez.encryptRow({ value: text(JSON.stringify(record)), groupKey, table: "records", rowId });
 
 // on Ben's phone
 const key = ez.openGroupKey({ sealed, groupId, keyPair: ben });
-const expense = JSON.parse(read(ez.decryptRow({ encrypted: data, groupKey: key, table: "expense", rowId })));
+const record = JSON.parse(read(ez.decryptRow({ encrypted: data, groupKey: key, table: "records", rowId })));
 ```
 
 | Function | Spec |
@@ -45,7 +45,7 @@ const expense = JSON.parse(read(ez.decryptRow({ encrypted: data, groupKey: key, 
 ## Pros
 
 - The server stores and syncs rows it can't read. A leaked database shows ciphertexts.
-- A row is bound to its table and id: the server can't swap two rows, or pass an expense off as another table's row. A changed byte is refused too.
+- A row is bound to its table and id: the server can't swap two rows, or pass a record off as another table's row. A changed byte is refused too.
 - A sealed group key is bound to its group id.
 - Adding a member is one more sealed copy of the key. Nothing is re-encrypted.
 

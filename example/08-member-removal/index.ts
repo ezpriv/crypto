@@ -10,9 +10,9 @@ interface Row {
 const server = createServer();
 // `${groupId}/${version}/${userId}` → sealed group key
 const groupKeys = server.table<Uint8Array>("group_keys");
-const expenses = server.table<Row>("expenses"); // rowId → row
+const records = server.table<Row>("records"); // rowId → row
 
-const groupId = "grp_flat";
+const groupId = "grp_team";
 const people = {
 	ana: ez.createUserKeys(),
 	ben: ez.createUserKeys(),
@@ -27,7 +27,7 @@ function shareKey(version: number, groupKey: Uint8Array, userIds: Name[]) {
 		groupKeys.set(`${groupId}/${version}/${userId}`, sealed);
 	}
 }
-function addExpense(
+function addRecord(
 	rowId: string,
 	value: string,
 	version: number,
@@ -36,16 +36,16 @@ function addExpense(
 	const data = ez.encryptRow({
 		value: text(value),
 		groupKey,
-		table: "expense",
+		table: "records",
 		rowId,
 	});
-	expenses.set(rowId, { keyVersion: version, data });
+	records.set(rowId, { keyVersion: version, data });
 }
 
 // Version 1: Ana, Ben and Carla.
 const v1 = ez.newGroupKey();
 shareKey(1, v1, ["ana", "ben", "carla"]);
-addExpense("exp_1", "Rent, 900.00", 1, v1);
+addRecord("rec_1", "Meeting notes", 1, v1);
 const carlasKeys = keysFor("carla"); // her phone keeps the keys it opened
 
 // Ana removes Carla. Her phone makes version 2 and seals it to Ana and Ben only. The server
@@ -54,7 +54,7 @@ groupKeys.delete(`${groupId}/1/carla`);
 const v2 = ez.newGroupKey();
 shareKey(2, v2, ["ana", "ben"]);
 // New rows use version 2. Old rows keep version 1: nothing is re-encrypted.
-addExpense("exp_2", "Internet, 30.00", 2, v2);
+addRecord("rec_2", "Launch checklist", 2, v2);
 
 // Any member's app: open each version it was given, and pick the key by the row's keyVersion.
 function keysFor(userId: Name) {
@@ -68,11 +68,11 @@ function keysFor(userId: Name) {
 	return keys;
 }
 function readAll(keys: Map<number, Uint8Array>) {
-	return [...expenses].map(([rowId, row]) => {
+	return [...records].map(([rowId, row]) => {
 		const groupKey = keys.get(row.keyVersion);
 		if (!groupKey) throw new Error(`no key for version ${row.keyVersion}`);
 		return read(
-			ez.decryptRow({ encrypted: row.data, groupKey, table: "expense", rowId }),
+			ez.decryptRow({ encrypted: row.data, groupKey, table: "records", rowId }),
 		);
 	});
 }
@@ -80,21 +80,21 @@ function readAll(keys: Map<number, Uint8Array>) {
 // Ben stays: he reads old and new rows.
 const bensKeys = keysFor("ben");
 assert.deepEqual([...bensKeys.keys()], [1, 2]);
-assert.deepEqual(readAll(bensKeys), ["Rent, 900.00", "Internet, 30.00"]);
+assert.deepEqual(readAll(bensKeys), ["Meeting notes", "Launch checklist"]);
 show("Ben's app shows", readAll(bensKeys));
 
 // Carla kept version 1, so the old rows she already had stay readable to her.
 assert.deepEqual([...carlasKeys.keys()], [1]);
 // But she has no version 2, and version 1 doesn't open the new rows…
 assert.throws(() => readAll(carlasKeys), /no key for version 2/);
-const internet = expenses.get("exp_2")?.data ?? new Uint8Array();
+const checklist = records.get("rec_2")?.data ?? new Uint8Array();
 assert.throws(
 	() =>
 		ez.decryptRow({
-			encrypted: internet,
+			encrypted: checklist,
 			groupKey: carlasKeys.get(1) ?? new Uint8Array(),
-			table: "expense",
-			rowId: "exp_2",
+			table: "records",
+			rowId: "rec_2",
 		}),
 	/ezpriv: cannot decrypt/,
 );

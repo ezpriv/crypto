@@ -31,17 +31,17 @@ const key = (wrappingKey: Uint8Array, kind: string) =>
 wraps.set(`${userId}/password`, key(old.keyP, "password"));
 wraps.set(`${userId}/recovery`, key(ez.keyFromWords(words), "recovery"));
 const groupKey = ez.newGroupKey();
-const groupId = "grp_1";
+const groupId = "grp_team";
 const sealedGroupKey = ez.sealGroupKey({
 	groupKey,
 	groupId,
 	publicKey: ana.publicKey,
 });
-const expense = ez.encryptRow({
-	value: text("Dinner, 42.00"),
+const record = ez.encryptRow({
+	value: text("Meeting notes"),
 	groupKey,
-	table: "expense",
-	rowId: "exp_1",
+	table: "records",
+	rowId: "rec_1",
 });
 
 // Phone: the user types the words. Case and extra spaces don't matter.
@@ -94,12 +94,12 @@ const opened = ez.openGroupKey({
 	keyPair: recovered,
 });
 const row = {
-	encrypted: expense,
+	encrypted: record,
 	groupKey: opened,
-	table: "expense",
-	rowId: "exp_1",
+	table: "records",
+	rowId: "rec_1",
 };
-assert.equal(read(ez.decryptRow(row)), "Dinner, 42.00");
+assert.equal(read(ez.decryptRow(row)), "Meeting notes");
 show("Phone holds", {
 	key_A: brief(privateKey),
 	newPasswordWrap: wraps.get(`${userId}/password`),
